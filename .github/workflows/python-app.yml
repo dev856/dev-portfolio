@@ -1,4 +1,4 @@
-name: Enhanced App Wake-Up
+name: Streamlit App Wake-Up
 
 on:
   schedule:
@@ -8,27 +8,30 @@ on:
 jobs:
   wake-up:
     runs-on: ubuntu-latest
+    container:
+      image: selenium/node-chrome:124.0
+      volumes:
+        - /dev/shm:/dev/shm  # Critical for Chrome stability
 
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.11'
           
       - name: Install dependencies
         run: |
           sudo apt-get install -y libgbm1 xvfb
-          pip install selenium webdriver-manager requests==2.32.0
+          pip install selenium webdriver-manager requests
 
-      - name: Run wake-up system
-        run: python wake_up_streamlit.py
-        
+      - name: Execute wake-up system
+        run: python streamlit_wakeup_enhanced.py
 
       - name: Upload logs
         uses: actions/upload-artifact@v4
         with:
           name: wakeup-logs
           path: |
-            wakeup_log.txt
+            wakeup.log
