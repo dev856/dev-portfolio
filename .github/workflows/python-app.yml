@@ -8,8 +8,6 @@ on:
 jobs:
   wake-up:
     runs-on: ubuntu-latest
-    container:
-      image: selenium/node-chrome:124.0
       volumes:
         - /dev/shm:/dev/shm  # Critical for Chrome stability
 
