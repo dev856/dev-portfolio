@@ -30,4 +30,4 @@ jobs:
         with:
           name: wakeup-logs
           path: |
-            wakeup.log
+            wakeup_log.txt
