@@ -23,7 +23,7 @@ jobs:
           pip install selenium webdriver-manager requests
 
       - name: Execute wake-up system
-        run: python streamlit_wakeup_enhanced.py
+        run: python wake-up-streamlit.py
 
       - name: Upload logs
         uses: actions/upload-artifact@v4
