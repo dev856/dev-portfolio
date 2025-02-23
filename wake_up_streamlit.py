@@ -17,9 +17,8 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
 STREAMLIT_APPS = [
-    "https://your-streamlit-app1.streamlit.app/",
-    "https://your-streamlit-app2.streamlit.app/",
-    "https://your-streamlit-app3.streamlit.app/"
+    "https://devkotak.streamlit.app/",
+    "https://topicapplied.streamlit.app/"
 ]
 
 def configure_driver():
