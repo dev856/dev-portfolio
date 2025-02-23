@@ -2,4 +2,5 @@
 
 STREAMLIT_APPS = [
     "https://www.devkotak.streamlit.app/",
+    "https://topicapplied.streamlit.app/"
 ]
