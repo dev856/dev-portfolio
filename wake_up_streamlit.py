@@ -1,83 +1,74 @@
 #!/usr/bin/env python3
 """
-streamlit_wakeup_enhanced.py - Robust Streamlit App Wake-Up System
+streamlit_wakeup_enhanced.py - Robust Streamlit Wake-Up System
 """
 
 import os
 import time
 import random
 import requests
-import datetime
+import logging
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
+# Configure logging
+logging.basicConfig(
+    filename='wakeup.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
 STREAMLIT_APPS = [
-    "https://devkotak.streamlit.app/",
-    "https://topicapplied.streamlit.app/"
+    "https://devkotak.streamlit.app",
+    "https://topicapplied.streamlit.app"
 ]
 
-def configure_driver():
-    """Configure Chrome for reliable CI execution"""
+CHROME_OPTIONS = [
+    '--headless=new',
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--disable-software-rasterizer',
+    '--window-size=1920,1080',
+    '--single-process',
+    '--remote-allow-origins=*'
+]
+
+def create_driver():
+    """Create a fresh browser instance with stability enhancements"""
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless=new')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--disable-software-rasterizer')
-    options.add_argument('--window-size=1920,1080')
-    options.add_argument('--single-process')
+    for option in CHROME_OPTIONS:
+        options.add_argument(option)
     
     service = ChromeService(ChromeDriverManager().install())
     return webdriver.Chrome(service=service, options=options)
 
-def verify_wake_success(driver, url):
-    """Multi-stage application status verification"""
-    attempts = 0
-    while attempts < 6:  # 3-minute total verification window
-        try:
-            driver.refresh()
-            WebDriverWait(driver, 30).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, ".stApp"))
-            )
-            
-            # Additional API health check
-            health_check = requests.get(f"{url}/_stcore/health", timeout=10)
-            if health_check.status_code == 200:
-                return True
-        except (TimeoutException, requests.exceptions.RequestException):
-            time.sleep(30)
-            attempts += 1
-    return False
-
-def maintain_connection(url):
-    """Maintain WebSocket connection with randomized intervals"""
+def validate_session(driver):
+    """Check if the current browser session is still valid"""
     try:
-        while True:
-            delay = random.randint(25, 35)  # Randomized pattern
-            time.sleep(delay)
-            requests.post(
-                f"{url}/_stcore/stream",
-                json={"data": "keepalive"},
-                timeout=10
-            )
-    except KeyboardInterrupt:
-        pass
+        driver.title
+        return True
+    except WebDriverException:
+        return False
 
-def wake_up_sequence(driver, url, log_file):
-    """Full wake-up procedure for a single app"""
+def wake_app(url):
+    """Execute full wake-up sequence with error recovery"""
+    driver = None
     try:
-        # Initial wake-up attempt
+        driver = create_driver()
+        
+        # Phase 1: Initial page load
         driver.get(url)
         WebDriverWait(driver, 20).until(
             EC.presence_of_element_located((By.TAG_NAME, "body"))
         )
 
-        # Handle wake-up button
+        # Phase 2: Button interaction
         try:
             button = WebDriverWait(driver, 15).until(
                 EC.element_to_be_clickable(
@@ -85,34 +76,42 @@ def wake_up_sequence(driver, url, log_file):
                 )
             )
             button.click()
-            log_file.write(f"[{datetime.datetime.now()}] Initiated wake-up for {url}\n")
-        except TimeoutException:
-            log_file.write(f"[{datetime.datetime.now()}] App already awake: {url}\n")
+            logging.info(f"Wake-up triggered for {url}")
+        except Exception as e:
+            logging.warning(f"No button found for {url}: {str(e)}")
             return
 
-        # Verification phase
-        if verify_wake_success(driver, url):
-            log_file.write(f"[{datetime.datetime.now()}] Verified active state: {url}\n")
-            # Start keep-alive in background
-            import threading
-            threading.Thread(target=maintain_connection, args=(url,), daemon=True).start()
+        # Phase 3: Post-wake verification
+        verification_passed = False
+        for attempt in range(3):
+            try:
+                driver.refresh()
+                WebDriverWait(driver, 30).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, ".stApp"))
+                )
+                verification_passed = True
+                break
+            except Exception as e:
+                logging.warning(f"Verification attempt {attempt+1} failed: {str(e)}")
+                time.sleep(10)
+        
+        if verification_passed:
+            logging.info(f"Successfully woke {url}")
         else:
-            log_file.write(f"[{datetime.datetime.now()}] Wake-up verification failed: {url}\n")
+            logging.error(f"Failed to verify wake-up for {url}")
 
     except Exception as e:
-        log_file.write(f"[{datetime.datetime.now()}] Critical error: {str(e)}\n")
+        logging.error(f"Critical error processing {url}: {str(e)}")
+    finally:
+        if driver and validate_session(driver):
+            driver.quit()
 
 def main():
-    driver = configure_driver()
-    
-    with open("wakeup_log.txt", "a") as log_file:
-        log_file.write(f"\n{'='*40}\nSession started: {datetime.datetime.now()}\n{'='*40}\n")
-        
-        for idx, url in enumerate(STREAMLIT_APPS, 1):
-            log_file.write(f"\nProcessing app {idx}/{len(STREAMLIT_APPS)}: {url}\n")
-            wake_up_sequence(driver, url, log_file)
-    
-    driver.quit()
+    """Main execution flow with session management"""
+    for index, url in enumerate(STREAMLIT_APPS, 1):
+        logging.info(f"Processing app {index}/{len(STREAMLIT_APPS)}: {url}")
+        wake_app(url)
+        time.sleep(random.uniform(1, 3))  # Add jitter between requests
 
 if __name__ == "__main__":
     main()
