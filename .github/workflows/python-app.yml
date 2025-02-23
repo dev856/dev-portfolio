@@ -7,9 +7,7 @@ on:
 
 jobs:
   wake-up:
-    runs-on: ubuntu-latest
-      volumes:
-        - /dev/shm:/dev/shm  # Critical for Chrome stability
+    runs-on: ubuntu-latest # Critical for Chrome stability
 
     steps:
       - uses: actions/checkout@v4
