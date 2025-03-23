@@ -288,7 +288,7 @@ def home():
             with left_column:
                 st.header("🙋 :blue[About Me]",divider='rainbow')
                 st.subheader("Aspiring Software Engineer")
-                st.info("👋🏻 Hi, I'm Dev! I'm a student of Master of Engineering: Electrical and Computer Engineering with collaborative specialization in Data Science at Carleton University. Having prior relevant experiences in tech, I am constantly seeking unique internships to broaden my horizons before embarking on my career upon graduation.")
+                st.info("👋🏻 Hi, I'm Dev! I'm a student of Master of Engineering: Electrical and Computer Engineering with a collaborative specialization in Data Science at Carleton University. Having prior relevant experiences in tech, I am constantly seeking unique internships to broaden my horizons before embarking on my career upon graduation.")
                 st.info("💼 With the COVID-19 pandemic behind us, I believe there is potential for data science to be applied in the retail industry. In response to the increasing demand for data analytics from online, I am thus aiming to enter this industry for my first full-time job.")
                 st.info("🏋🏻 In addition, I like to run, write, watch movies and... enjoy eating good food in my free time!")
                 st.info("👨🏼‍💻 Academic interests: Data Visualization, Deep Learning, Recommendation Systems, Natural Language Processing")
@@ -298,7 +298,7 @@ def home():
                 components.html(
                 """
                 <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
-                <dotlottie-player src="https://lottie.host/d407ea79-a951-4986-9ee6-d1d91f071918/YNhQKOD8BR.json" background="transparent" speed="1" style="width: 350px; height: 500px" direction="1" mode="normal" loop autoplay></dotlottie-player>
+                <dotlottie-player src="https://assets6.lottiefiles.com/packages/lf20_w51pcehl.json" background="transparent" speed="1" style="width: 350px; height: 500px" direction="1" mode="normal" loop autoplay></dotlottie-player>
                 """,
                 height=500,
                 ) 
