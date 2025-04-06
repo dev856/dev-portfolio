@@ -20,7 +20,7 @@ def home():
     # Page configs (tab title, favicon)
    
     st.set_page_config(
-        page_title="Dev Kotak",
+        page_title="Dev Kotak", 
         page_icon="👨‍💻",
         layout="wide",
         initial_sidebar_state="collapsed"
