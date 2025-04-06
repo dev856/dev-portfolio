@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -94,7 +94,9 @@ def _new_fragment_id_queue(
             new_queue := list(
                 dropwhile(lambda x: x != ctx.current_fragment_id, curr_queue)
             )
-        ), "Could not find current_fragment_id in fragment_id_queue. This should never happen."
+        ), (
+            "Could not find current_fragment_id in fragment_id_queue. This should never happen."
+        )
 
         return new_queue
 

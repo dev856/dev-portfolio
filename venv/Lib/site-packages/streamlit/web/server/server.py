@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import mimetypes
 import os
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Awaitable, Final
+from typing import TYPE_CHECKING, Any, Final
 
 import tornado.concurrent
 import tornado.locks
@@ -30,6 +30,7 @@ import tornado.websocket
 from tornado.httpserver import HTTPServer
 
 from streamlit import cli_util, config, file_util, util
+from streamlit.auth_util import is_authlib_installed
 from streamlit.config_option import ConfigOption
 from streamlit.logger import get_logger
 from streamlit.runtime import Runtime, RuntimeConfig, RuntimeState
@@ -52,11 +53,17 @@ from streamlit.web.server.routes import (
     RemoveSlashHandler,
     StaticFileHandler,
 )
-from streamlit.web.server.server_util import DEVELOPMENT_PORT, make_url_path_regex
+from streamlit.web.server.server_util import (
+    DEVELOPMENT_PORT,
+    get_cookie_secret,
+    is_xsrf_enabled,
+    make_url_path_regex,
+)
 from streamlit.web.server.stats_request_handler import StatsRequestHandler
 from streamlit.web.server.upload_file_request_handler import UploadFileRequestHandler
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable
     from ssl import SSLContext
 
 _LOGGER: Final = get_logger(__name__)
@@ -95,6 +102,10 @@ HOST_CONFIG_ENDPOINT: Final = r"_stcore/host-config"
 SCRIPT_HEALTH_CHECK_ENDPOINT: Final = (
     r"(?:script-health-check|_stcore/script-health-check)"
 )
+
+OAUTH2_CALLBACK_ENDPOINT: Final = "/oauth2callback"
+AUTH_LOGIN_ENDPOINT: Final = "/auth/login"
+AUTH_LOGOUT_ENDPOINT: Final = "/auth/logout"
 
 
 class RetriesExceeded(Exception):
@@ -370,6 +381,33 @@ class Server:
                 ]
             )
 
+        if is_authlib_installed():
+            from streamlit.web.server.oauth_authlib_routes import (
+                AuthCallbackHandler,
+                AuthLoginHandler,
+                AuthLogoutHandler,
+            )
+
+            routes.extend(
+                [
+                    (
+                        make_url_path_regex(base, OAUTH2_CALLBACK_ENDPOINT),
+                        AuthCallbackHandler,
+                        {"base_url": base},
+                    ),
+                    (
+                        make_url_path_regex(base, AUTH_LOGIN_ENDPOINT),
+                        AuthLoginHandler,
+                        {"base_url": base},
+                    ),
+                    (
+                        make_url_path_regex(base, AUTH_LOGOUT_ENDPOINT),
+                        AuthLogoutHandler,
+                        {"base_url": base},
+                    ),
+                ]
+            )
+
         if config.get_option("global.developmentMode"):
             _LOGGER.debug("Serving static content from the Node dev server")
         else:
@@ -410,8 +448,8 @@ class Server:
 
         return tornado.web.Application(
             routes,
-            cookie_secret=config.get_option("server.cookieSecret"),
-            xsrf_cookies=config.get_option("server.enableXsrfProtection"),
+            cookie_secret=get_cookie_secret(),
+            xsrf_cookies=is_xsrf_enabled(),
             # Set the websocket message size. The default value is too low.
             websocket_max_message_size=get_max_message_size_bytes(),
             **TORNADO_SETTINGS,  # type: ignore[arg-type]

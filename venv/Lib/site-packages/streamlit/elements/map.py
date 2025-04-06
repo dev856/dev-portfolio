@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import copy
 import json
-from typing import TYPE_CHECKING, Any, Collection, Final, cast
+from typing import TYPE_CHECKING, Any, Final, cast
 
 import streamlit.elements.deck_gl_json_chart as deck_gl_json_chart
 from streamlit import config, dataframe_util
@@ -33,6 +33,8 @@ from streamlit.proto.DeckGlJsonChart_pb2 import DeckGlJsonChart as DeckGlJsonCha
 from streamlit.runtime.metrics_util import gather_metrics
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+
     from pandas import DataFrame
 
     from streamlit.dataframe_util import Data
@@ -359,7 +361,7 @@ def _get_lat_or_lon_col_name(
     # (Read about ExtensionArrays here: # https://pandas.pydata.org/community/blog/extension-arrays.html)
     # However, after a performance test I found the solution below runs basically as
     # fast as .values.any().
-    if any(data[col_name].isnull().array):
+    if any(data[col_name].isna().array):
         raise StreamlitAPIException(
             f"Column {col_name} is not allowed to contain null values, such "
             "as NaN, NaT, or None."
@@ -419,7 +421,9 @@ def _convert_color_arg_or_column(
 
     if color_col_name is not None:
         # Convert color column to the right format.
-        if len(data[color_col_name]) > 0 and is_color_like(data[color_col_name].iat[0]):
+        if len(data[color_col_name]) > 0 and is_color_like(
+            data[color_col_name].iloc[0]
+        ):
             # Use .loc[] to avoid a SettingWithCopyWarning in some cases.
             data.loc[:, color_col_name] = data.loc[:, color_col_name].map(
                 to_int_color_tuple

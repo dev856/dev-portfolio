@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Union, cast
 
 from typing_extensions import TypeAlias
 
+from streamlit.elements.lib.file_uploader_utils import enforce_filename_restriction
 from streamlit.elements.lib.form_utils import current_form_id
 from streamlit.elements.lib.policies import (
     check_widget_policies,
@@ -79,6 +80,8 @@ class CameraInputSerde:
             return_value = None
         else:
             return_value = upload_files[0]
+        if return_value is not None and not isinstance(return_value, DeletedFile):
+            enforce_filename_restriction(return_value.name, [".jpg"])
         return return_value
 
 
@@ -127,10 +130,14 @@ class CameraInputMixin:
             If this is omitted, a key will be generated for the widget
             based on its content. No two widgets may have the same key.
 
-        help : str
-            An optional tooltip that gets displayed next to the widget label.
-            Streamlit only displays the tooltip when
-            ``label_visibility="visible"``.
+        help : str or None
+            A tooltip that gets displayed next to the widget label. Streamlit
+            only displays the tooltip when ``label_visibility="visible"``. If
+            this is ``None`` (default), no tooltip is displayed.
+
+            The tooltip can optionally contain GitHub-flavored Markdown,
+            including the Markdown directives described in the ``body``
+            parameter of ``st.markdown``.
 
         on_change : callable
             An optional callback invoked when this camera_input's value

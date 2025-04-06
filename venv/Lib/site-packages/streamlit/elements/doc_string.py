@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -270,8 +270,7 @@ def _get_variable_name_from_code_str(code):
     ):
         # A common pattern is to add "," at the end of a magic command to make it print.
         # This removes that final ",", so it looks nicer.
-        if code.endswith(","):
-            code = code[:-1]
+        code = code.removesuffix(",")
 
         return code
 
