@@ -23,7 +23,7 @@ def home():
         page_title="Dev Kotak", 
         page_icon="👨‍💻",
         layout="wide",
-        initial_sidebar_state="collapsed"
+        initial_sidebar_state="auto"
     )
     st.sidebar.success("Select a page below.")
 
