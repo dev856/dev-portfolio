@@ -260,9 +260,9 @@ def home():
             "nav-link-selected": {"background-color": "#192538"},
         }
         )
-        components.html(LINKEDIN_PROFILE,height=400,width=900)
         components.html(GITHUB_PROFILE)
-        
+        components.html(LINKEDIN_PROFILE,height=400,width=900)
+
         linkedin_url = "https://www.linkedin.com/in/dev-kotak/"
         github_url = "https://github.com/dev856"
         email_url = "mailto:devhkotak@gmail.com"
