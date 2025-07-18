@@ -917,7 +917,7 @@ def home():
 
     st.write("##")
     
-    st.write(f"""<div class="subtitle" style="text-align: center;">⬅️ Check out my other details in the  n menu!</div>""", unsafe_allow_html=True)
+    st.write(f"""<div class="subtitle" style="text-align: center;">⬅️ Check out my other details in the navigation menu!</div>""", unsafe_allow_html=True)
 
 
 if __name__=="__main__":
