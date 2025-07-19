@@ -182,9 +182,9 @@ def home():
             for name, url in kwargs.items():
                 icon_src = {
                    
-                    "linkedin": "https://img.icons8.com/ios-filled/100/ff8c00/linkedin.png",
-                    "github": "https://img.icons8.com/ios-filled/100/ff8c00/github--v2.png",
-                    "email": "https://img.icons8.com/ios-filled/100/ff8c00/filled-message.png",
+                    "linkedin": "https://img.icons8.com/ios-filled/50/ffffff/linkedin.png",
+                    "github": "https://img.icons8.com/ios-filled/50/ffffff/github.png",
+                    "email": "https://img.icons8.com/ios-filled/50/ffffff/new-post.png",
                     "codechef": "https://img.icons8.com/?size=100&id=LnZMjt9rZC3d&format=png&color=000000"
                 }.get(name.lower())
 
@@ -243,15 +243,16 @@ def home():
             with l:
                 st.empty()
             with m:
-                st.image(img_lh, width=175)
+                #st.image(img_lh, width=175)
+                st.image(img_lh, width=150, caption="Dev", use_container_width=True)
             with r:
                 st.empty()
         
         choose = option_menu(
                             "Dev Kotak", 
                             ["About Me", "Site Overview", "Experience", "Skills", "Education", "Projects", "Volunteering", "Resume", "Contact"],
-                            icons=['person fill','globe','clock history', 'tools', 'book half', 'clipboard', 'heart', 'paperclip', 'envelope'],
-                            menu_icon="mortarboard", 
+                            icons=['person-fill','globe','briefcase-fill', 'tools', 'book-half', 'kanban-fill', 'heart-fill', 'file-earmark-person-fill', 'envelope'],
+                            menu_icon="cast", 
                             default_index=0,
                             styles={
             "container": {"padding": "0!important", "background-color": "#181818"},
@@ -261,7 +262,7 @@ def home():
         }
         )
         components.html(GITHUB_PROFILE)
-        components.html(LINKEDIN_PROFILE,height=400,width=900)
+        components.html(LINKEDIN_PROFILE,height=400,width=700)
 
         linkedin_url = "https://www.linkedin.com/in/dev-kotak/"
         github_url = "https://github.com/dev856"
