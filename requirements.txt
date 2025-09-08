@@ -82,7 +82,7 @@ streamlit-option-menu==0.3.13
 streamlit-pdf-viewer==0.0.17
 streamlit-toggle-switch==1.0.2
 streamlit-vertical-slider==2.5.5
-streamlit[pdf]
+streamlit-pdf==1.0.7
 tenacity==8.5.0
 toml==0.10.2
 tornado==6.4.1
