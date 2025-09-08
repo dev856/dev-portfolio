@@ -449,7 +449,7 @@ def education_section():
     
     # --- EDUCATION DATA ---
     # Define image paths in the ASSETS dictionary first
-    ASSETS['carleton'] = "images/carleton.png" 
+    ASSETS['carleton'] = "images/carleton.jpg" 
     ASSETS['hiramohan'] = "images/school.png" 
     ASSETS['ultravision'] = "images/school.png"
 
