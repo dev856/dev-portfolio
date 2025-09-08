@@ -1,6 +1,6 @@
 
 
-altair==5.4.1
+altair==5.5.0
 attrs==24.2.0
 beautifulsoup4==4.12.3
 blinker==1.8.2
@@ -42,6 +42,7 @@ narwhals==1.7.0
 numpy==2.1.1
 packaging==24.1
 pandas==2.2.2
+pip==25.2
 pillow==10.4.0
 plotly==5.24.1
 prometheus_client==0.20.0
