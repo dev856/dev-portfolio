@@ -67,7 +67,7 @@ smmap==5.0.1
 soupsieve==2.6
 st-annotated-text==4.0.1
 st-theme==1.2.3
-streamlit==1.41.1
+streamlit==1.49.1
 streamlit-analytics==0.4.1
 streamlit-camera-input-live==0.2.0
 streamlit-card==1.0.2
@@ -82,6 +82,7 @@ streamlit-option-menu==0.3.13
 streamlit-pdf-viewer==0.0.17
 streamlit-toggle-switch==1.0.2
 streamlit-vertical-slider==2.5.5
+streamlit[pdf]
 tenacity==8.5.0
 toml==0.10.2
 tornado==6.4.1
