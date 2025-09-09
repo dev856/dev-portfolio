@@ -901,4 +901,4 @@ else:
 # --- FOOTER ---
 st.markdown("---")
 # UPDATED: Year changed to 2025
-st.markdown("<p style='text-align: center; color: #94A3B8;'>© 2025 Dev Kotak. Built with ❤️ using Streamlit.</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #94A3B8;'> </p>", unsafe_allow_html=True)
