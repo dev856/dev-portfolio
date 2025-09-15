@@ -840,7 +840,10 @@ a:hover {
 
 /* Hide Streamlit default elements */
 #MainMenu { visibility: hidden; }
-header { visibility: hidden; }
+header {
+    visibility: visible !important;
+    background: none !important;
+}
 footer {
     text-align: center;
     padding: 1rem;
