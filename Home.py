@@ -18,6 +18,8 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
+
+
 # --- LOAD CSS ---
 def local_css(file_name):
     """Function to load a local CSS file."""
