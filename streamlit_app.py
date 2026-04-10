@@ -2,6 +2,8 @@
 
 STREAMLIT_APPS = [
     "https://devkotak.streamlit.app/",
-    "https://topicapplied.streamlit.app/",
-    "https://todopersonal.streamlit.app/"
+    "https://tonetopic.streamlit.app/",
+    "https://todopersonal.streamlit.app/",
+    "https://insight-sync.streamlit.app/"
+
 ]
