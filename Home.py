@@ -1,13 +1,14 @@
 import streamlit as st
 import base64
+import re
+import html
 from streamlit_option_menu import option_menu
 import streamlit.components.v1 as components
-from PIL import Image
 import sqlite3
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
-import requests
-from streamlit_lottie import st_lottie
+from textwrap import dedent
 from custom import GITHUB_PROFILE,LINKEDIN_PROFILE
 
 # --- PAGE CONFIGURATION ---
@@ -31,37 +32,6 @@ def local_css(file_name):
 
 local_css("styles/main.css")
 
-# --- LOTTIE ANIMATIONS ---
-def load_lottie_url(url: str):
-    """Function to load a lottie animation from a URL."""
-    try:
-        r = requests.get(url, timeout=10)
-        r.raise_for_status()
-        return r.json()
-    except requests.exceptions.RequestException:
-        return None
-
-# Updated Lottie URLs
-lottie_about = load_lottie_url("https://lottie.host/68d3c014-d4f6-4c56-91e4-9bf2097244d3/0sOZZzTYjD.json")
-lottie_contact = load_lottie_url("https://lottie.host/33847137-a947-49f9-a803-bf39399859b9/hH8sYx2a55.json")
-lottie_skills = load_lottie_url("https://assets5.lottiefiles.com/packages/lf20_49rdyysj.json")
-lottie_education = load_lottie_url("https://lottie.host/98c35334-2e6f-4892-8086-69f88c3a1c5b/CAs49i1nC5.json")
-with open("assets/phot.jpeg", "rb") as img_file:
-    img = "data:image/png;base64," + base64.b64encode(img_file.read()).decode()
-st.write(f"""
-    <div class="container">
-        <div class="box">
-            <div class="spin-container">
-                <div class="shape">
-                    <div class="bd">
-                        <img src="{img}" alt="Dev Kotak">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    """, 
-    unsafe_allow_html=True)
 # --- ASSET LOADING ---
 def get_image_as_base64(path):
     """Function to convert an image to a base64 string."""
@@ -76,7 +46,6 @@ ASSETS = {
     "jupiter_ai": "images/jupiter.png", "zummit": "images/zummit1.png",
     "depstar": "images/depstar.png", "kintu": "images/kintu.jpeg",
     "sparks": "images/spark.png",
-    "img":"assests/phot.jpeg"
 }
 
 # --- SOCIAL & CONTACT ---
@@ -86,6 +55,74 @@ SOCIAL_MEDIA = {
     "CodeChef": "https://www.codechef.com/users/god_001",
     "Email": "mailto:devhkotak@gmail.com"
 }
+
+HERO_ACTIONS = {
+    "View GitHub": SOCIAL_MEDIA["GitHub"],
+    "Connect on LinkedIn": SOCIAL_MEDIA["LinkedIn"],
+    "Send Email": SOCIAL_MEDIA["Email"],
+}
+
+def safe_text(value):
+    return html.escape(str(value), quote=False)
+
+def render_tag_cloud(items, class_name="tag-cloud"):
+    return f'<div class="{class_name}">' + "".join(
+        f"<span>{safe_text(item)}</span>" for item in items
+    ) + "</div>"
+
+def render_section_stats(items):
+    cards = "".join(
+        '<div class="section-stat-card">'
+        f'<span>{safe_text(item["label"])}</span>'
+        f'<strong>{safe_text(item["value"])}</strong>'
+        f'<p>{safe_text(item["detail"])}</p>'
+        '</div>'
+        for item in items
+    )
+    st.html(f'<div class="section-stat-grid">{cards}</div>')
+
+def render_hero():
+    profile_pic_b64 = get_image_as_base64(ASSETS["profile_pic"])
+    profile_image = (
+        f'<img src="data:image/jpeg;base64,{profile_pic_b64}" alt="Dev Kotak">'
+        if profile_pic_b64
+        else ""
+    )
+    action_links = "".join(
+        f'<a class="hero-action" href="{url}" target="_blank">{label}</a>'
+        for label, url in HERO_ACTIONS.items()
+    )
+
+    st.markdown(
+        f"""
+        <section class="hero-panel">
+            <div class="hero-copy">
+                <span class="eyebrow">Software engineering + data science portfolio</span>
+                <h1>Dev Kotak</h1>
+                <p>
+                    Graduate engineer building practical ML and data tools, from hydrology
+                    research models to Streamlit analytics apps and computer vision prototypes.
+                </p>
+                <div class="hero-proof">
+                    <div><strong>M.Eng</strong><span>Data Science focus</span></div>
+                    <div><strong>6</strong><span>Applied internships</span></div>
+                    <div><strong>15+</strong><span>Core tools</span></div>
+                </div>
+                <div class="hero-tags">
+                    <span>Data Science</span>
+                    <span>Machine Learning</span>
+                    <span>Python</span>
+                    <span>Streamlit</span>
+                </div>
+                <div class="hero-actions">{action_links}</div>
+            </div>
+            <div class="hero-visual">
+                <div class="profile-orbit">{profile_image}</div>
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # --- DATABASE FOR CONTACT FORM ---
 def init_db():
@@ -104,38 +141,56 @@ init_db()
 with st.sidebar:
     profile_pic_b64 = get_image_as_base64(ASSETS["profile_pic"])
     if profile_pic_b64:
-        st.markdown(f'<div style="display: flex; justify-content: center; padding-bottom: 20px;"><img src="data:image/jpeg;base64,{profile_pic_b64}" alt="Dev Kotak" class="profile-image"></div>', unsafe_allow_html=True)
-    st.markdown("<h1 style='text-align: center; color: #FFFFFF;'>Dev Kotak</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #B3B3B3;'>Aspiring Software & Data Engineer</p>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div class="sidebar-profile">
+                <img src="data:image/jpeg;base64,{profile_pic_b64}" alt="Dev Kotak" class="profile-image">
+                <h1>Dev Kotak</h1>
+                <p>Aspiring Software & Data Engineer</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            """
+            <div class="sidebar-profile">
+                <h1>Dev Kotak</h1>
+                <p>Aspiring Software & Data Engineer</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-    # UPDATED: Sidebar menu styling for hover/select effect
     choose = option_menu(
         menu_title=None,
         options=["About Me", "Experience", "Skills", "Education", "Projects", "Resume", "Contact"],
         icons=['person-vcard', 'briefcase', 'gear-wide-connected', 'mortarboard', 'kanban', 'file-earmark-person', 'envelope-at'],
         menu_icon="cast", default_index=0,
         styles={
-            "container": {"padding": "0!important", "background-color": "#181818"},
-            "icon": {"color": "#FFFFFE", "font-size": "20px"},  # Muted color
+            "container": {"padding": "0!important", "background-color": "transparent"},
+            "icon": {"color": "#9fb4cc", "font-size": "18px"},
             "nav-link": {
-                "font-size": "16px",
+                "font-size": "15px",
+                "font-weight": "600",
                 "text-align": "left",
-                "margin": "0px",
-                "color": "#F6F8FC",  # Muted color
-                "--hover-color": "#5E5E5E" # Darker background on hover
+                "margin": "4px 0",
+                "padding": "11px 14px",
+                "border-radius": "6px",
+                "color": "#d7e0ea",
+                "--hover-color": "rgba(56, 189, 248, 0.10)",
             },
             "nav-link-selected": {
-                "background-color": "#525252", # New accent color
-                "color": "#F5F4F4"             # Dark text for contrast
+                "background-color": "#e5edf7",
+                "color": "#07111f",
             },
         }
     )
     components.html(GITHUB_PROFILE)
     components.html(LINKEDIN_PROFILE,height=400,width=700)
     st.markdown("---")
-    st.markdown("<h3 style='text-align: center;'>Connect with Me</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 class='sidebar-heading'>Connect</h3>", unsafe_allow_html=True)
     
-    # UPDATED: Replaced st.columns with robust HTML/Flexbox for social icons
     icons_html = []
     for platform, link in SOCIAL_MEDIA.items():
         icon_name = platform.lower()
@@ -148,7 +203,7 @@ with st.sidebar:
         icons_html.append(f'<a href="{link}" target="_blank" style="margin: 0 10px;"><img src="{icon_path}" width="30"></a>')
     
     st.markdown(f'''
-    <div style="display: flex; justify-content: center; align-items: center; padding-top: 10px;">
+    <div class="sidebar-socials">
         {''.join(icons_html)}
     </div>
     ''', unsafe_allow_html=True)
@@ -156,56 +211,92 @@ with st.sidebar:
 # --- MAIN CONTENT SECTIONS ---
 
 def about_me_section():
-    st.markdown('<div class="section-header">About Me 🙋‍♂️</div>', unsafe_allow_html=True)
+    render_hero()
+    st.markdown('<div class="section-header">Profile Summary</div>', unsafe_allow_html=True)
+    render_section_stats([
+        {"label": "Current Base", "value": "Carleton", "detail": "Graduate engineering work with a Data Science specialization."},
+        {"label": "Build Style", "value": "Practical", "detail": "Readable interfaces, useful analytics, and working ML prototypes."},
+        {"label": "Open To", "value": "Internships", "detail": "Software engineering, data science, and applied AI teams."},
+    ])
     col1, col2 = st.columns([2, 1])
     with col1:
-        st.markdown("<div class='about-text'>👋🏻 **Hi, I'm Dev!** A Master of Engineering student at Carleton University, specializing in Electrical & Computer Engineering and Data Science. I'm passionate about technology and actively seeking internships to apply my skills and gain diverse industry experience.</div>", unsafe_allow_html=True)
-        st.markdown("<div class='about-text'>💡 I'm particularly interested in how data science is revolutionizing industries. My goal is to leverage data analytics to build intelligent, impactful solutions.</div>", unsafe_allow_html=True)
-        st.markdown("<div class='about-text'>🏃‍♂️ In my free time, I enjoy running, exploring new movies, and indulging in good food!</div>", unsafe_allow_html=True)
+        st.markdown("<div class='about-text'><strong>Hi, I'm Dev.</strong> I am a Master of Engineering student at Carleton University specializing in Electrical & Computer Engineering and Data Science.</div>", unsafe_allow_html=True)
+        st.markdown("<div class='about-text'>My recent work spans hydrological flux estimation, pose estimation, topic modeling, dashboards, and model evaluation workflows.</div>", unsafe_allow_html=True)
+        st.markdown("<div class='about-text'>I am actively looking for internship opportunities where I can contribute across software engineering, data science, and applied AI.</div>", unsafe_allow_html=True)
     with col2:
-        components.html(
-                """
-                <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
-                <dotlottie-player src="https://assets6.lottiefiles.com/packages/lf20_w51pcehl.json" background="transparent" speed="1" style="width: 350px; height: 500px" direction="1" mode="normal" loop autoplay></dotlottie-player>
-                """,
-                height=500,
-                )
+        st.markdown(
+            """
+            <div class="profile-focus-panel">
+                <span class="card-eyebrow">Current Focus</span>
+                <h3>Applied AI and data products</h3>
+                <p>Combining software engineering fundamentals with practical machine learning, visualization, and product thinking.</p>
+                <div>
+                    <span>Internship-ready</span>
+                    <span>Data-driven systems</span>
+                    <span>Product-minded engineering</span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     st.markdown("#### Academic and Career Interests")
-    interests = {"Data Visualization": "📊", "Deep Learning": "🧠", "Recommendation Systems": "👍", "Natural Language Processing": "💬", "Data Engineering": "⚙️", "Software Engineering": "💻"}
-    st.write(" ".join([f'<span class="skill-tag">{icon} {interest}</span>' for interest, icon in interests.items()]), unsafe_allow_html=True)
+    interests = ["Data Visualization", "Deep Learning", "Recommendation Systems", "Natural Language Processing", "Data Engineering", "Software Engineering"]
+    st.html(render_tag_cloud(interests, "premium-tool-cloud compact-cloud"))
 
 def experience_section():
-    st.markdown('<div class="section-header">Work Experience 🚀</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Work Experience</div>', unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div class="section-kicker">
+            Internship and research experience across applied AI, data science, software engineering, and computer vision.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    render_section_stats([
+        {"label": "Experience Range", "value": "2021-2023", "detail": "Research, ML, data science, backend, and chatbot internships."},
+        {"label": "Applied Domains", "value": "AI + CV", "detail": "Hydrology, facial analysis, pose estimation, NLP, and automation."},
+        {"label": "Working Mode", "value": "End-to-end", "detail": "From data pipelines and modeling to usable prototypes."},
+    ])
     experience_data = [
-        {"headline": "Research Intern, ISRO", "text": "Worked on ML techniques for hydrological flux estimation over Indian river basins using Python and Google Earth Engine.", "image": get_image_as_base64(ASSETS['isro']), "date": "Dec 2022 - May 2023"},
-        {"headline": "ML Intern, Jupiter AI Labs", "text": "Developed E2E ML solutions, integrated ChatGPT with Chrome extensions, and worked on AI Prompt Engineering.", "image": get_image_as_base64(ASSETS['jupiter_ai']), "date": "Dec 2022 - Feb 2023"},
-        {"headline": "Data Science Intern, Zummit Infolabs", "text": "Developed facial feature detectors with Dlib, emotion classifiers with TensorFlow, and object detection models with YOLO.", "image": get_image_as_base64(ASSETS['zummit']), "date": "Jun 2022 - Sep 2022"},
-        {"headline": "ML Intern, CHARUSAT", "text": "Created a lightweight Yoga Pose estimation solution using MediaPipe and OpenCV.", "image": get_image_as_base64(ASSETS['depstar']), "date": "May 2022 - Jun 2022"},
-        {"headline": "NodeJS Intern, Kintu Designs", "text": "Built a chatbot for a delivery app using Botpress.io and Node.js.", "image": get_image_as_base64(ASSETS['kintu']), "date": "Jun 2021 - Sep 2021"},
-        {"headline": "Data Science Intern, The Sparks Foundation", "text": "Applied supervised and unsupervised ML for predictive tasks.", "image": get_image_as_base64(ASSETS['sparks']), "date": "Jan 2021 - Feb 2021"}
+        {"headline": "Research Intern, ISRO", "text": "Worked on ML techniques for hydrological flux estimation over Indian river basins using Python and Google Earth Engine.", "image": get_image_as_base64(ASSETS['isro']), "date": "Dec 2022 - May 2023", "focus": "Machine Learning", "stack": ["Python", "ML", "Google Earth Engine"]},
+        {"headline": "ML Intern, Jupiter AI Labs", "text": "Developed E2E ML solutions, integrated ChatGPT with Chrome extensions, and worked on AI Prompt Engineering.", "image": get_image_as_base64(ASSETS['jupiter_ai']), "date": "Dec 2022 - Feb 2023", "focus": "AI Engineering", "stack": ["Python", "ChatGPT", "Prompt Engineering"]},
+        {"headline": "Data Science Intern, Zummit Infolabs", "text": "Developed facial feature detectors with Dlib, emotion classifiers with TensorFlow, and object detection models with YOLO.", "image": get_image_as_base64(ASSETS['zummit']), "date": "Jun 2022 - Sep 2022", "focus": "Computer Vision", "stack": ["TensorFlow", "YOLO", "Dlib"]},
+        {"headline": "ML Intern, CHARUSAT", "text": "Created a lightweight Yoga Pose estimation solution using MediaPipe and OpenCV.", "image": get_image_as_base64(ASSETS['depstar']), "date": "May 2022 - Jun 2022", "focus": "Computer Vision", "stack": ["MediaPipe", "OpenCV", "Python"]},
+        {"headline": "NodeJS Intern, Kintu Designs", "text": "Built a chatbot for a delivery app using Botpress.io and Node.js.", "image": get_image_as_base64(ASSETS['kintu']), "date": "Jun 2021 - Sep 2021", "focus": "Software Engineering", "stack": ["Node.js", "Botpress", "Chatbots"]},
+        {"headline": "Data Science Intern, The Sparks Foundation", "text": "Applied supervised and unsupervised ML for predictive tasks.", "image": get_image_as_base64(ASSETS['sparks']), "date": "Jan 2021 - Feb 2021", "focus": "Data Science", "stack": ["Python", "Scikit-Learn", "Pandas"]}
     ]
 
-    st.markdown('<div class="timeline">', unsafe_allow_html=True)
+    filters = ["All"] + sorted({entry["focus"] for entry in experience_data})
+    selected_focus = st.segmented_control("Filter experience by focus", filters, default="All")
+    if selected_focus != "All":
+        experience_data = [entry for entry in experience_data if entry["focus"] == selected_focus]
+
+    timeline_cards = []
     for i, entry in enumerate(experience_data):
         side = "left" if i % 2 == 0 else "right"
-        image_html = f'<img src="data:image/jpeg;base64,{entry["image"]}" style="width: 70px; height: 70px; border-radius: 10px; float: right; margin-left: 15px;">' if entry["image"] else ""
-        st.markdown(f"""
-        <div class="timeline-container {side}">
-            <div class="timeline-content">
-                {image_html}
-                <h4 class="timeline-headline">{entry['headline']}</h4>
-                <p style="font-style: italic; color: #B3B3B3;">{entry['date']}</p>
-                <p>{entry['text']}</p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+        image_html = (
+            f'<img src="data:image/jpeg;base64,{entry["image"]}" alt="{safe_text(entry["headline"])}">'
+            if entry["image"] else ""
+        )
+        stack_html = render_tag_cloud(entry["stack"], "timeline-skills")
+        timeline_cards.append(
+            f'<div class="timeline-container {side}">'
+            '<div class="timeline-content">'
+            f'<div class="experience-card-top"><div>{image_html}</div><span>{safe_text(entry["focus"])}</span></div>'
+            f'<div class="timeline-headline">{safe_text(entry["headline"])}</div>'
+            f'<p class="timeline-date">{safe_text(entry["date"])}</p>'
+            f'<p class="timeline-description">{safe_text(entry["text"])}</p>'
+            f'{stack_html}'
+            '</div></div>'
+        )
+    st.html(f'<div class="timeline">{"".join(timeline_cards)}</div>')
 
 # 0
     # --- SKILLS DATA ---
-def skills_section():
-        st.markdown('<div class="section-header">Technical Skills 🛠️</div>', unsafe_allow_html=True)
+def _legacy_skills_section():
+        st.markdown('<div class="section-header">Technical Skills</div>', unsafe_allow_html=True)
         
         # --- SKILLS DATA ---
         skills_data = {
@@ -213,6 +304,47 @@ def skills_section():
             "Data Science & ML": {"Pandas & NumPy": 95, "Scikit-Learn": 90, "TensorFlow": 85, "PyTorch": 80, "NLTK": 80},
             "Web, Cloud & Viz": {"Streamlit": 90, "Plotly": 85, "HTML/CSS": 80, "GCP": 75, "Git & GitHub": 90}
         }
+
+        all_skill_rows = [
+            {"Category": category, "Skill": skill, "Proficiency": proficiency}
+            for category, skills in skills_data.items()
+            for skill, proficiency in skills.items()
+        ]
+        skills_df = pd.DataFrame(all_skill_rows)
+        st.markdown(
+            """
+            <div class="section-kicker">
+                A focused technical stack across software engineering, applied ML, and data visualization.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        skill_cards = []
+        for category, skills in skills_data.items():
+            top_skills = sorted(skills.items(), key=lambda item: item[1], reverse=True)[:4]
+            skill_rows = "".join(
+                f"""
+                <div class="skill-row">
+                    <div><strong>{skill}</strong><span>{proficiency}%</span></div>
+                    <div class="skill-bar"><i style="width: {proficiency}%"></i></div>
+                </div>
+                """
+                for skill, proficiency in top_skills
+            )
+            skill_cards.append(
+                f"""
+                <article class="skill-stack-card">
+                    <span class="card-eyebrow">{category}</span>
+                    {skill_rows}
+                </article>
+                """
+            )
+
+        st.markdown(
+            f'<div class="skill-stack-grid">{"".join(skill_cards)}</div>',
+            unsafe_allow_html=True,
+        )
         
         # Create tabs for different visualization methods
         tab1, tab2, tab3 = st.tabs(["Skill Radar", "Sunburst View", "Category Breakdown"])
@@ -265,13 +397,21 @@ def skills_section():
             
             # Interactive skill level selectors
             st.markdown("##### Explore Skills by Proficiency Level")
-            min_proficiency = st.slider("Minimum Proficiency Level", 0, 100, 70, 5)
+            col_filter_1, col_filter_2 = st.columns([1, 2])
+            with col_filter_1:
+                min_proficiency = st.slider("Minimum Proficiency Level", 0, 100, 70, 5)
+            with col_filter_2:
+                selected_categories = st.multiselect(
+                    "Categories",
+                    list(skills_data.keys()),
+                    default=list(skills_data.keys()),
+                )
             
-            filtered_skills = []
-            for category, skills in skills_data.items():
-                for skill, proficiency in skills.items():
-                    if proficiency >= min_proficiency:
-                        filtered_skills.append((skill, proficiency, category))
+            filtered_skills = [
+                (row.Skill, row.Proficiency, row.Category)
+                for row in skills_df.itertuples(index=False)
+                if row.Proficiency >= min_proficiency and row.Category in selected_categories
+            ]
             
             if filtered_skills:
                 # Create a dataframe for the filtered skills
@@ -440,14 +580,16 @@ def skills_section():
                             unsafe_allow_html=True
                         )
         
-        # Add Lottie animation at the bottom
-        if lottie_skills:
-            st_lottie(lottie_skills, height=250, key="skills")
-    
-        
-
-def education_section():
-    st.markdown('<div class="section-header">Education 🎓</div>', unsafe_allow_html=True)
+def _legacy_education_section():
+    st.markdown('<div class="section-header">Education</div>', unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div class="section-kicker">
+            Academic training across computer science, electrical and computer engineering, and data science.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     
     # --- EDUCATION DATA ---
     # Define image paths in the ASSETS dictionary first
@@ -626,6 +768,8 @@ def education_section():
             "university": "Carleton University",
             "link": "https://carleton.ca/discover/",
             "duration": "2023 - 2025",
+            "accent": "#60a5fa",
+            "focus": "Graduate specialization in data science",
             "details": [
                 "Collaborative Specialization in Data Science",
                 "<b>CGPA:</b> 10.5 / 12.0",
@@ -639,6 +783,8 @@ def education_section():
             "university": "Charotar University of Science and Technology",
             "link": "https://www.charusat.ac.in/",
             "duration": "2019 - 2023",
+            "accent": "#34d399",
+            "focus": "Computer science and software foundations",
             "details": [
                 "<b>CGPA:</b> 9.25 / 10.0 (WES Evaluated: 3.92 / 4.0)",
                 "Recipient of a merit-based scholarship for all 4 years.",
@@ -652,6 +798,8 @@ def education_section():
             "university": "Hiramohan Vidhyalaya",
             "link": "https://schools.org.in/surendranagar/24080503891/hira-mohan-vidhyalaya.html",
             "duration": "2017 - 2019",
+            "accent": "#fbbf24",
+            "focus": "Mathematics and science foundation",
             "details": ["<b>Percentage:</b> 82% (Grade A2)", "<b>Coursework:</b> Physics, Chemistry, Mathematics"],
             "color": "linear-gradient(135deg, #f46b45, #eea849)"
         },
@@ -661,6 +809,8 @@ def education_section():
             "university": "Ultravision Academy",
             "link": "http://www.ultravisionschool.com/",
             "duration": "2016 - 2017",
+            "accent": "#a78bfa",
+            "focus": "Secondary education",
             "details": ["Completed secondary education with distinction."],
             "color": "linear-gradient(135deg, #614385, #516395)"
         }
@@ -689,14 +839,14 @@ def education_section():
     }
 
     # Create tabs with custom styling
-    tab1, tab2 = st.tabs(["📚 Education Journey", "🧩 Course Modules"])
+    tab1, tab2 = st.tabs(["Education Journey", "Course Modules"])
 
     with tab1:
         # Add intro section with animation
         st.markdown("""
-        <div style="text-align: center; margin-bottom: 30px;">
+        <div class="journey-intro">
             <h3>My Academic Background</h3>
-            <p>A chronological view of my educational journey and achievements</p>
+            <p>A concise timeline of the academic path behind my software, data, and machine learning work.</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -712,7 +862,7 @@ def education_section():
                 image_src = f"data:image/png;base64,{entry['image']}" if entry['image'] and not entry['image'].startswith('http') else entry['image']
                 
                 st.markdown(f"""
-                <div class="edu-card" style="border-left: 5px solid {entry['color'].split(',')[1].strip()});">
+                <div class="edu-card" style="border-left: 3px solid {entry['accent']};">
                     <div class="edu-card-header">
                         <div class="edu-icon" style="background: {entry['color']}">
                             <img src="{image_src}" alt="{entry['university']}">
@@ -720,7 +870,10 @@ def education_section():
                         <div class="edu-title">
                             <h4><a href="{entry['link']}" target="_blank" style="text-decoration: none; color: white;">{entry['degree']}</a></h4>
                             <div class="edu-subtitle">{entry['university']}</div>
-                            <div class="edu-duration">{entry['duration']}</div>
+                            <div class="edu-meta-row">
+                                <span>{entry['duration']}</span>
+                                <span>{entry['focus']}</span>
+                            </div>
                         </div>
                     </div>
                     <div class="edu-details">
@@ -732,23 +885,15 @@ def education_section():
             st.markdown('</div>', unsafe_allow_html=True)
         
         with col2:
-            # Add Lottie animation
-            if lottie_education:
-                st_lottie(lottie_education, height=600, key="education", quality="high")
-            
-            # Add education stats
             st.markdown("""
-            <div style="background: rgba(40,40,40,0.4); border-radius: 10px; padding: 20px; margin-top: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                <h4 style="text-align: center; margin-bottom: 15px;">Education Highlights</h4>
-                <div style="display: flex; justify-content: space-around; text-align: center;">
-                    <div>
-                        <div style="font-size: 2rem; font-weight: bold; background: linear-gradient(135deg, #3a7bd5, #00d2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">6+</div>
-                        <div style="font-size: 0.9rem; color: #b3b3b3;">Years of Higher Education</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 2rem; font-weight: bold; background: linear-gradient(135deg, #3a7bd5, #00d2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">50+</div>
-                        <div style="font-size: 0.9rem; color: #b3b3b3;">Courses Completed</div>
-                    </div>
+            <div class="academic-focus-panel">
+                <h4>Academic Focus</h4>
+                <p>Graduate-level data science, applied programming, secure systems, and machine learning, supported by a computer science foundation.</p>
+                <div>
+                    <span>Data Science</span>
+                    <span>Machine Learning</span>
+                    <span>Secure Systems</span>
+                    <span>Visualization</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -756,9 +901,9 @@ def education_section():
     with tab2:
         # Add course module visualization with attractive styling
         st.markdown("""
-        <div style="text-align: center; margin-bottom: 30px;">
+        <div class="journey-intro">
             <h3>Academic Curriculum</h3>
-            <p>Detailed view of courses taken throughout my academic journey</p>
+            <p>Coursework grouped by program and academic year.</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -820,35 +965,97 @@ def education_section():
 
 
 def projects_section():
-    st.markdown('<div class="section-header">Projects 📂</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Selected Projects</div>', unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div class="section-kicker">
+            Practical projects across computer vision, NLP, and model evaluation, built as usable demos rather than isolated notebooks.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    render_section_stats([
+        {"label": "Project Shape", "value": "Applied", "detail": "ML, NLP, and computer vision projects with practical interfaces."},
+        {"label": "Delivery", "value": "Prototype", "detail": "Streamlit apps, notebooks, pipelines, and measurable model outcomes."},
+        {"label": "Signal", "value": "Hands-on", "detail": "Each project reflects implementation, evaluation, and presentation."},
+    ])
     projects = {
-        "Digital Yoga Trainer": {"description": "Developed a lightweight solution for real-time Yoga pose estimation and correction using MediaPipe and OpenCV.", "stack": ["Python", "MediaPipe", "OpenCV", "NumPy"], "github": "https://github.com/dev856/Yoga-Pose-Estimation"},
-        "Multi-label Dataset Prediction": {"description": "Engineered a winning solution for a Kaggle-style competition. Employed RandomForest and a meta-learning approach with Logistic Regression, achieving 75% accuracy.", "stack": ["Python", "Scikit-Learn", "Pandas", "Meta-learning"], "github": "https://github.com/dev856"},
-        "Tone Topic - Topic Modeling Tool": {"description": "Built a Streamlit application that uses Latent Dirichlet Allocation (LDA) for topic modeling on text and CSV data to gather insights.", "stack": ["Streamlit", "NLTK", "Gensim", "Pandas"], "github": "https://github.com/dev856"}
+        "Digital Yoga Trainer": {
+            "description": "Developed a lightweight solution for real-time Yoga pose estimation and correction using MediaPipe and OpenCV.",
+            "stack": ["Python", "MediaPipe", "OpenCV", "NumPy"],
+            "github": "https://github.com/dev856/Yoga-Pose-Estimation",
+            "type": "Computer Vision",
+            "impact": "Real-time posture feedback",
+            "role": "Pose estimation pipeline"
+        },
+        "Multi-label Dataset Prediction": {
+            "description": "Engineered a winning solution for a Kaggle-style competition. Employed RandomForest and a meta-learning approach with Logistic Regression, achieving 75% accuracy.",
+            "stack": ["Python", "Scikit-Learn", "Pandas", "Meta-learning"],
+            "github": "https://github.com/dev856",
+            "type": "Machine Learning",
+            "impact": "75% predictive accuracy",
+            "role": "Modeling and evaluation"
+        },
+        "Tone Topic - Topic Modeling Tool": {
+            "description": "Built a Streamlit application that uses Latent Dirichlet Allocation (LDA) for topic modeling on text and CSV data to gather insights.",
+            "stack": ["Streamlit", "NLTK", "Gensim", "Pandas"],
+            "github": "https://github.com/dev856",
+            "type": "NLP",
+            "impact": "Interactive topic exploration",
+            "role": "End-to-end app build"
+        }
     }
-    
-    project_cols = st.columns(len(projects))
-    for i, (title, details) in enumerate(projects.items()):
-        with project_cols[i]:
-            st.markdown(f"""
-            <div class="project-card">
-                <div class="project-card-inner">
-                    <div class="project-card-front">
-                        <h3>{title}</h3>
-                    </div>
-                    <div class="project-card-back">
-                        <p>{details['description']}</p>
-                        <div>{' '.join([f'<span class="skill-tag-sm">{tech}</span>' for tech in details['stack']])}</div>
-                        <br>
-                        <a href="{details['github']}" target="_blank">GitHub Repo</a>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+
+    project_types = ["All"] + sorted({details["type"] for details in projects.values()})
+    selected_type = st.pills("Project type", project_types, default="All")
+    search_term = st.text_input("Search projects or tech stack", placeholder="Try Python, Streamlit, NLP...")
+
+    filtered_projects = []
+    for title, details in projects.items():
+        search_blob = " ".join([title, details["description"], details["type"], *details["stack"]]).lower()
+        type_match = selected_type == "All" or details["type"] == selected_type
+        search_match = not search_term or search_term.lower() in search_blob
+        if type_match and search_match:
+            filtered_projects.append((title, details))
+
+    if not filtered_projects:
+        st.info("No projects match the current filters.")
+        return
+
+    project_cards = []
+    for title, details in filtered_projects:
+        tags = render_tag_cloud(details["stack"], "project-tags")
+        project_cards.append(
+            '<article class="project-panel">'
+            f'<div class="project-panel-top"><span>{safe_text(details["type"])}</span></div>'
+            f'<div class="premium-card-title">{safe_text(title)}</div>'
+            '<div class="project-outcome-grid">'
+            f'<div class="project-outcome"><span>Outcome</span><strong>{safe_text(details["impact"])}</strong></div>'
+            f'<div class="project-outcome"><span>Role</span><strong>{safe_text(details["role"])}</strong></div>'
+            '</div>'
+            f'<p>{safe_text(details["description"])}</p>'
+            f'{tags}'
+            f'<a class="project-link" href="{safe_text(details["github"])}" target="_blank">Open GitHub</a>'
+            '</article>'
+        )
+    st.html(f'<div class="project-grid">{ "".join(project_cards) }</div>')
 
 
 def resume_section():
-    st.markdown('<div class="section-header">My Resume 📄</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Resume</div>', unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div class="section-kicker">
+            Download or review the current resume with education, projects, experience, and technical skills.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    render_section_stats([
+        {"label": "Document", "value": "PDF", "detail": "One concise resume covering education, projects, skills, and experience."},
+        {"label": "Best Fit", "value": "Internship", "detail": "Software engineering, data science, applied AI, and analytics roles."},
+        {"label": "Review Path", "value": "Download", "detail": "Use the button below for the latest local resume file."},
+    ])
     resume_path = "assets/Profile.pdf"
 
     try:
@@ -870,10 +1077,38 @@ def resume_section():
         st.error("Resume PDF not found. Please make sure 'assets/Profile.pdf' exists.")
 
 def contact_section():
-    st.markdown('<div class="section-header">Get In Touch 📬</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Get In Touch</div>', unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div class="section-kicker">
+            Open to internship conversations, applied AI work, data products, and software engineering collaborations.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    render_section_stats([
+        {"label": "Best Channel", "value": "Email", "detail": "Best for internship opportunities and project details."},
+        {"label": "Quick Intro", "value": "LinkedIn", "detail": "Good for short messages, referrals, and professional context."},
+        {"label": "Code", "value": "GitHub", "detail": "Project repos and technical work samples."},
+    ])
     col1, col2 = st.columns([1, 1])
     with col1:
-        st.markdown("I'm always open to discussing new projects, creative ideas, or opportunities. Feel free to reach out!")
+        st.html(
+            '<div class="contact-intro">'
+            '<strong>Let’s talk about useful technical work.</strong>'
+            '<p>I am open to internship conversations, applied AI work, data products, and software engineering projects.</p>'
+            '</div>'
+        )
+        st.markdown(
+            f"""
+            <div class="contact-actions">
+                <a href="{SOCIAL_MEDIA['Email']}" target="_blank">Email</a>
+                <a href="{SOCIAL_MEDIA['LinkedIn']}" target="_blank">LinkedIn</a>
+                <a href="{SOCIAL_MEDIA['GitHub']}" target="_blank">GitHub</a>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
         with st.form(key="contact_form", clear_on_submit=True):
             name = st.text_input("Your Name", placeholder="John Doe")
             email = st.text_input("Your Email", placeholder="john.doe@example.com")
@@ -881,6 +1116,8 @@ def contact_section():
             if st.form_submit_button(label="Send Message"):
                 if not all([name, email, message]):
                     st.warning("Please fill out all fields.")
+                elif not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+                    st.warning("Please enter a valid email address.")
                 else:
                     conn = sqlite3.connect('portfolio_contacts.db')
                     c = conn.cursor()
@@ -889,8 +1126,191 @@ def contact_section():
                     conn.close()
                     st.success("Thank you for your message! I'll get back to you soon.")
     with col2:
-        if lottie_contact: 
-            st_lottie(lottie_contact, height=400, key="contact")
+        st.markdown(
+            """
+            <div class="contact-panel">
+                <span class="card-eyebrow">Response Channels</span>
+                <h3>Best ways to reach me</h3>
+                <p>Email is best for opportunities and project discussions. LinkedIn works well for quick introductions.</p>
+                <div>
+                    <span>Internships</span>
+                    <span>Applied AI</span>
+                    <span>Data projects</span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+def skills_section():
+    st.markdown('<div class="section-header">Technical Skills</div>', unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div class="section-kicker">
+            A focused, practical stack for building data-driven software, machine learning workflows, and interactive analytics products.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    render_section_stats([
+        {"label": "Core Stack", "value": "15+", "detail": "Languages, ML tools, cloud, and visualization libraries."},
+        {"label": "Primary Focus", "value": "Data + AI", "detail": "Applied machine learning, analytics, and product-facing dashboards."},
+        {"label": "Delivery Tools", "value": "Streamlit", "detail": "Fast prototypes, interactive apps, and stakeholder-ready reporting."},
+    ])
+
+    skills_data = {
+        "Programming & Databases": {
+            "summary": "Core engineering tools for backend logic, data processing, and persistence.",
+            "skills": {"Python": 95, "SQL": 90, "Java": 80, "C/C++": 75, "MongoDB": 70},
+            "focus": ["Backend logic", "Data modeling", "Query design"],
+            "accent": "#60a5fa",
+        },
+        "Data Science & ML": {
+            "summary": "Applied machine learning, model experimentation, and statistical data workflows.",
+            "skills": {"Pandas & NumPy": 95, "Scikit-Learn": 90, "TensorFlow": 85, "PyTorch": 80, "NLTK": 80},
+            "focus": ["Modeling", "Experimentation", "NLP"],
+            "accent": "#34d399",
+        },
+        "Web, Cloud & Visualization": {
+            "summary": "Tools for shipping usable interfaces, dashboards, and visual analytics.",
+            "skills": {"Streamlit": 90, "Git & GitHub": 90, "Plotly": 85, "HTML/CSS": 80, "GCP": 75},
+            "focus": ["Dashboards", "Version control", "Cloud basics"],
+            "accent": "#a78bfa",
+        },
+    }
+
+    cards = []
+    for index, (category, details) in enumerate(skills_data.items(), start=1):
+        skill_rows = "".join(
+            '<div class="premium-skill-row">'
+            f'<div><strong>{html.escape(skill, quote=False)}</strong><span>{level}%</span></div>'
+            f'<div class="premium-skill-bar"><i style="--level: {level}%"></i></div>'
+            '</div>'
+            for skill, level in details["skills"].items()
+        )
+        focus_tags = "".join(
+            f"<span>{html.escape(item, quote=False)}</span>" for item in details["focus"]
+        )
+        cards.append(
+            '<article class="premium-skill-card" '
+            f'style="--card-accent: {details["accent"]};">'
+            '<div class="premium-card-head">'
+            '<span class="card-eyebrow">Skill Area</span>'
+            f'<span class="premium-card-index">{index:02d}</span>'
+            '</div>'
+            f'<div class="premium-card-title">{html.escape(category, quote=False)}</div>'
+            f'<p>{html.escape(details["summary"], quote=False)}</p>'
+            f'<div class="premium-focus-tags">{focus_tags}</div>'
+            f'{skill_rows}'
+            '</article>'
+        )
+
+    st.html(f'<div class="premium-skill-grid">{"".join(cards)}</div>')
+
+    st.markdown("#### Core Tooling")
+    tools = [
+        "Python", "SQL", "Pandas", "NumPy", "Scikit-Learn", "TensorFlow", "PyTorch",
+        "Streamlit", "Plotly", "Git", "GitHub", "Google Cloud", "MongoDB", "HTML/CSS"
+    ]
+    st.html(
+        '<div class="premium-tool-cloud">'
+        + "".join(f"<span>{html.escape(tool, quote=False)}</span>" for tool in tools)
+        + "</div>"
+    )
+
+
+def education_section():
+    st.markdown('<div class="section-header">Education Journey</div>', unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div class="section-kicker">
+            Academic training across computer science, electrical and computer engineering, and data science.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    render_section_stats([
+        {"label": "Graduate Focus", "value": "M.Eng", "detail": "Electrical and Computer Engineering with Data Science specialization."},
+        {"label": "Foundation", "value": "B.Tech", "detail": "Computer Science and Engineering with strong software fundamentals."},
+        {"label": "Academic Strength", "value": "CGPA", "detail": "Strong performance across graduate and undergraduate coursework."},
+    ])
+
+    education_summary = [
+        {
+            "degree": "Master of Engineering - Electrical & Computer Engineering",
+            "school": "Carleton University",
+            "duration": "2023 - 2025",
+            "level": "Graduate",
+            "focus": "Collaborative Specialization in Data Science",
+            "details": ["CGPA: 10.5 / 12.0", "Pattern Classification", "Applied Programming", "Advanced Data Visualization", "Secure Networking"],
+            "accent": "#60a5fa",
+        },
+        {
+            "degree": "Bachelor of Technology - Computer Science & Engineering",
+            "school": "Charotar University of Science and Technology",
+            "duration": "2019 - 2023",
+            "level": "Undergraduate",
+            "focus": "Computer science and software engineering foundation",
+            "details": ["CGPA: 9.25 / 10.0", "WES Evaluated: 3.92 / 4.0", "Merit scholarship recipient", "Machine Learning", "Software Engineering"],
+            "accent": "#34d399",
+        },
+        {
+            "degree": "Higher Secondary Education",
+            "school": "Hiramohan Vidhyalaya",
+            "duration": "2017 - 2019",
+            "level": "Senior Secondary",
+            "focus": "Physics, Chemistry, and Mathematics",
+            "details": ["Percentage: 82%", "Grade A2", "Science stream"],
+            "accent": "#fbbf24",
+        },
+        {
+            "degree": "Secondary Education",
+            "school": "Ultravision Academy",
+            "duration": "2016 - 2017",
+            "level": "Secondary",
+            "focus": "Secondary education with distinction",
+            "details": ["Completed secondary education with distinction"],
+            "accent": "#a78bfa",
+        },
+    ]
+
+    cards = []
+    for entry in education_summary:
+        detail_tags = "".join(
+            f"<span>{html.escape(detail, quote=False)}</span>" for detail in entry["details"]
+        )
+        cards.append(
+            '<article class="premium-education-card" '
+            f'style="--edu-accent: {entry["accent"]};">'
+            '<div class="education-card-top">'
+            f'<span class="education-duration">{html.escape(entry["duration"], quote=False)}</span>'
+            f'<span class="education-level">{html.escape(entry["level"], quote=False)}</span>'
+            '</div>'
+            f'<div class="premium-card-title">{html.escape(entry["degree"], quote=False)}</div>'
+            f'<strong class="education-school">{html.escape(entry["school"], quote=False)}</strong>'
+            f'<p>{html.escape(entry["focus"], quote=False)}</p>'
+            f'<div class="education-tags">{detail_tags}</div>'
+            '</article>'
+        )
+
+    st.html(f'<div class="premium-education-grid">{"".join(cards)}</div>')
+
+    st.markdown("#### Academic Coursework")
+    coursework = {
+        "Graduate Focus": ["Applied Programming", "Pattern Classification", "Data Science Seminar", "Advanced Data Visualization", "Cryptography Implementation"],
+        "Computer Science Foundation": ["Data Structures", "Algorithms", "Database Management", "Machine Learning", "Artificial Intelligence", "Computer Networks"],
+        "Software Practice": ["Software Engineering", "Object Oriented Programming", "Java Programming", "Python Programming", "Major Software Project"],
+    }
+    course_cards = []
+    for group, courses in coursework.items():
+        course_cards.append(
+            '<article class="coursework-card">'
+            f'<span class="card-eyebrow">{html.escape(group, quote=False)}</span>'
+            f'<div>{"".join(f"<span>{html.escape(course, quote=False)}</span>" for course in courses)}</div>'
+            '</article>'
+        )
+    st.html(f'<div class="coursework-grid">{"".join(course_cards)}</div>')
 
 
 # --- PAGE ROUTING ---
