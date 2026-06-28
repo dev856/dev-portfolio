@@ -1,6 +1,56 @@
+# Virtual environments
+.venv/
 venv/
 env/
-.venv/
+ENV/
+
+# Python cache and tooling state
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.hypothesis/
+.tox/
+.nox/
+
+# Packaging and build outputs
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Coverage and test artifacts
+.coverage
+.coverage.*
+htmlcov/
+
+# Environment files and secrets
 .env
+.env.*
+.streamlit/secrets.toml
+
+# Local uv cache
+.uv-cache/
+
+# Logs
+*.log
+
+# Local render/debug artifacts
+render_*.png
+*_dom.html
+_streamlit_test.py
+
+# Local databases and runtime artifacts
+*.db
+*.sqlite
+*.sqlite3
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
