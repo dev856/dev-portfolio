@@ -41,8 +41,10 @@ htmlcov/
 
 # Local render/debug artifacts
 render_*.png
+preview_*.png
 *_dom.html
 _streamlit_test.py
+capture_previews.py
 
 # Local databases and runtime artifacts
 *.db
