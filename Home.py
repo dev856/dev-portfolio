@@ -15,15 +15,15 @@ GITHUB = "https://github.com/dev856"
 LOCATION = "Ottawa, Ontario, Canada"
 
 NAV_ITEMS = [
-    "Overview",
-    "About",
-    "Projects",
-    "Experience",
-    "Skills",
-    "Education",
-    "Testimonials",
-    "Résumé",
-    "Contact",
+    "⚡ Overview",
+    "👤 About",
+    "🚀 Projects",
+    "💼 Experience",
+    "⚙ Skills",
+    "🎓 Education",
+    "💬 Testimonials",
+    "📄 Résumé",
+    "✉ Contact",
 ]
 
 MIME_BY_SUFFIX = {
@@ -115,6 +115,17 @@ def tag_html(items: list[str]) -> str:
     return " ".join(f'<span class="tag">{safe(item)}</span>' for item in items)
 
 
+def set_page(name: str) -> None:
+    """Helper to update navigation session state seamlessly."""
+    for item in NAV_ITEMS:
+        if name.lower() in item.lower():
+            st.session_state.nav = item
+            st.rerun()
+            return
+    st.session_state.nav = name
+    st.rerun()
+
+
 def section_header(kicker: str, title: str, description: str | None = None) -> None:
     st.markdown(f'<p class="section-kicker">{safe(kicker)}</p>', unsafe_allow_html=True)
     st.title(title)
@@ -127,12 +138,12 @@ def site_footer() -> None:
         f"""
         <footer class="site-footer">
           <div>
-            <span><strong>Dev Kotak</strong></span> · <span>Software &amp; Machine Learning Engineer</span> · <span>{LOCATION}</span>
+            <span>⚡ <strong>Dev Kotak</strong></span> · <span>Software &amp; Machine Learning Engineer</span> · <span>📍 {LOCATION}</span>
           </div>
           <div class="site-footer-links">
-            <a href="{LINKEDIN}" target="_blank" rel="noreferrer">LinkedIn</a>
-            <a href="{GITHUB}" target="_blank" rel="noreferrer">GitHub</a>
-            <a href="mailto:{EMAIL}">Email</a>
+            <a href="{LINKEDIN}" target="_blank" rel="noreferrer">💼 LinkedIn</a>
+            <a href="{GITHUB}" target="_blank" rel="noreferrer">🐙 GitHub</a>
+            <a href="mailto:{EMAIL}">✉ Email</a>
           </div>
         </footer>
         """,
@@ -148,7 +159,7 @@ def timeline_item(role: dict[str, object]) -> None:
         logo_html = f'<img class="timeline-logo" src="{uri}" alt="{safe(company)}" />' if uri else ""
     else:
         logo_html = f'<span class="timeline-logo timeline-logo-fallback">{initials(company)}</span>'
-    bullets = "".join(f"<li>{safe(b)}</li>" for b in role["bullets"])
+    bullets = "".join(f"<li><span class=\"bullet-icon\">✓</span> {safe(b)}</li>" for b in role["bullets"])
     st.markdown(
         f"""
         <div class="timeline-item">
@@ -158,9 +169,9 @@ def timeline_item(role: dict[str, object]) -> None:
               {logo_html}
               <div class="timeline-title">
                 <h3>{safe(role['role'])}</h3>
-                <p class="company">{safe(company)}</p>
+                <p class="company">🏢 {safe(company)}</p>
               </div>
-              <span class="date-pill">{safe(role['date'])}</span>
+              <span class="date-pill">📅 {safe(role['date'])}</span>
             </div>
             <p class="summary">{safe(role['summary'])}</p>
             <ul class="timeline-bullets">{bullets}</ul>
@@ -180,24 +191,24 @@ def project_card(project: dict[str, object], image_path: str | None = None) -> N
         st.subheader(str(project["title"]))
         st.write(str(project["description"]))
         st.markdown(
-            f'<p class="project-outcome"><strong>{safe(project["outcome_label"])}:</strong> {safe(project["outcome"])}</p>',
+            f'<p class="project-outcome"><strong>🎯 {safe(project["outcome_label"])}:</strong> {safe(project["outcome"])}</p>',
             unsafe_allow_html=True,
         )
         tag_row(project["tags"])
 
         deep_dive = project.get("deep_dive")
         if deep_dive:
-            with st.expander("Technical Architecture & System Details"):
+            with st.expander("📐 Technical Architecture & System Details"):
                 st.write(deep_dive)
 
         btn_cols = st.columns(2)
         if project.get("demo"):
             with btn_cols[0]:
-                st.link_button("Open Live App ↗", str(project["demo"]), width="stretch")
+                st.link_button("🌐 Open Live App ↗", str(project["demo"]), width="stretch")
         if project.get("repo"):
             col_target = btn_cols[1] if project.get("demo") else btn_cols[0]
             with col_target:
-                st.link_button(str(project.get("repo_label", "View GitHub ↗")), str(project["repo"]), width="stretch")
+                st.link_button(str(project.get("repo_label", "🐙 View GitHub ↗")), str(project["repo"]), width="stretch")
 
 
 # Initialize Database
@@ -218,8 +229,8 @@ profile_uri = as_data_uri(profile_path)
 resume_uri = as_data_uri(resume_path)
 
 # Initialize navigation session state
-if "nav" not in st.session_state:
-    st.session_state.nav = "Overview"
+if "nav" not in st.session_state or st.session_state.nav not in NAV_ITEMS:
+    st.session_state.nav = NAV_ITEMS[0]
 
 # Sidebar Branded Navigation
 with st.sidebar:
@@ -255,26 +266,29 @@ with st.sidebar:
     page = st.radio("Navigation", NAV_ITEMS, label_visibility="collapsed", key="nav")
     st.divider()
     st.caption("Available for Software Engineering, Applied Machine Learning, and Data Science appointments.")
-    st.link_button("LinkedIn Profile ↗", LINKEDIN, width="stretch")
-    st.link_button("GitHub Profile ↗", GITHUB, width="stretch")
+    st.link_button("💼 LinkedIn Profile ↗", LINKEDIN, width="stretch")
+    st.link_button("🐙 GitHub Profile ↗", GITHUB, width="stretch")
     if resume_path.exists():
         st.download_button(
-            "Download Résumé PDF ⤓",
+            "📥 Download Résumé PDF ⤓",
             resume_path.read_bytes(),
             "Dev-Kotak-Resume.pdf",
             "application/pdf",
             width="stretch",
         )
 
+# Clean page identifier for router matching
+page_clean = page.split(" ", 1)[-1] if " " in page else page
+
 
 # =========================================================================
 # 1. OVERVIEW / HERO
 # =========================================================================
-if page == "Overview":
+if page_clean == "Overview":
     st.markdown(
         """
         <div class="hero">
-          <p class="section-kicker">Software &amp; Applied Machine Learning</p>
+          <p class="section-kicker">⚡ Software &amp; Applied Machine Learning</p>
           <h1>I build <span class="blue-accent">intelligent software</span> from data, models &amp; modern web systems.</h1>
           <p class="section-description">Master of Engineering graduate in Electrical &amp; Computer Engineering (Data Science Specialization) at Carleton University. Experienced across production REST APIs, computer vision, natural language processing, and interactive data workbenches.</p>
         </div>
@@ -287,25 +301,26 @@ if page == "Overview":
         st.markdown(
             """
             <div class="practice">
-              <h3>Engineered for Precision &amp; Real-World Impact</h3>
+              <h3>🎯 Engineered for Precision &amp; Real-World Impact</h3>
             </div>
             """,
             unsafe_allow_html=True,
         )
+        st.write(
+            "I operate across the entire software lifecycle—transforming complex datasets into production-grade predictive models, high-throughput REST APIs, and responsive, interactive applications."
+        )
         st.write("")
         h_btn1, h_btn2, h_btn3 = st.columns(3)
         with h_btn1:
-            if st.button("Explore Work →", key="hero_explore_btn", type="primary", width="stretch"):
-                st.session_state.nav = "Projects"
-                st.rerun()
+            if st.button("🚀 Explore Work →", key="hero_explore_btn", type="primary", width="stretch"):
+                set_page("Projects")
         with h_btn2:
-            if st.button("Contact Me ✉", key="hero_contact_btn", width="stretch"):
-                st.session_state.nav = "Contact"
-                st.rerun()
+            if st.button("✉ Contact Me", key="hero_contact_btn", width="stretch"):
+                set_page("Contact")
         with h_btn3:
             if resume_path.exists():
                 st.download_button(
-                    "Download CV ⤓",
+                    "📥 Download CV ⤓",
                     resume_path.read_bytes(),
                     "Dev-Kotak-Resume.pdf",
                     "application/pdf",
@@ -319,7 +334,7 @@ if page == "Overview":
                 f"""
                 <figure class="portrait hero-media">
                   <div class="portrait-frame"><img src="{profile_uri}" alt="Portrait of Dev Kotak" /></div>
-                  <figcaption class="portrait-caption"><strong>Dev Kotak</strong><span>Ottawa, Canada</span></figcaption>
+                  <figcaption class="portrait-caption"><strong>Dev Kotak</strong><span>📍 Ottawa, Canada</span></figcaption>
                 </figure>
                 """,
                 unsafe_allow_html=True,
@@ -327,27 +342,39 @@ if page == "Overview":
 
     st.divider()
 
-    # Executive Stats Grid
+    # Executive Stats Grid with Icons
     st.markdown(
         """
         <div class="stat-grid">
           <div class="stat-card">
-            <p class="stat-index">01</p>
+            <div class="stat-head">
+              <span class="stat-index">01</span>
+              <span class="stat-badge-icon">💼</span>
+            </div>
             <p class="stat-value">7</p>
             <p class="stat-label">Industry &amp; Research Roles</p>
           </div>
           <div class="stat-card">
-            <p class="stat-index">02</p>
+            <div class="stat-head">
+              <span class="stat-index">02</span>
+              <span class="stat-badge-icon">🎓</span>
+            </div>
             <p class="stat-value">M.Eng</p>
             <p class="stat-label">Carleton Data Science (10.5/12)</p>
           </div>
           <div class="stat-card">
-            <p class="stat-index">03</p>
+            <div class="stat-head">
+              <span class="stat-index">03</span>
+              <span class="stat-badge-icon">🚀</span>
+            </div>
             <p class="stat-value">5+</p>
             <p class="stat-label">Deployed ML &amp; Web Apps</p>
           </div>
           <div class="stat-card">
-            <p class="stat-index">04</p>
+            <div class="stat-head">
+              <span class="stat-index">04</span>
+              <span class="stat-badge-icon">🎯</span>
+            </div>
             <p class="stat-value">75%</p>
             <p class="stat-label">Predictive Benchmark Accuracy</p>
           </div>
@@ -358,22 +385,22 @@ if page == "Overview":
 
     st.markdown('<span id="selected-work"></span>', unsafe_allow_html=True)
     st.write("")
-    st.markdown("## Core Engineering Pillars")
+    st.markdown("## ⚡ Core Engineering Pillars")
     st.markdown(
         """
         <div class="pillars-grid">
           <div class="pillar-card">
-            <span class="pillar-icon">01</span>
+            <span class="pillar-icon">🧠</span>
             <h4>Applied Machine Learning</h4>
             <p>Developing end-to-end predictive systems, ensemble meta-classifiers, and topic modeling pipelines with rigorous cross-validation and benchmark tuning.</p>
           </div>
           <div class="pillar-card">
-            <span class="pillar-icon">02</span>
+            <span class="pillar-icon">👁️</span>
             <h4>Computer Vision &amp; AI</h4>
             <p>Deploying real-time pose estimation (MediaPipe), automated visual defect inspection, facial landmark detectors, and OpenCV image processing pipelines.</p>
           </div>
           <div class="pillar-card">
-            <span class="pillar-icon">03</span>
+            <span class="pillar-icon">⚡</span>
             <h4>Full-Stack &amp; Systems</h4>
             <p>Designing robust RESTful architectures, low-latency JSON data workflows, relational &amp; NoSQL schemas (SQL, MongoDB), and responsive Streamlit/Web UIs.</p>
           </div>
@@ -383,7 +410,7 @@ if page == "Overview":
     )
 
     st.write("")
-    st.markdown("## Selected Work")
+    st.markdown("## 🚀 Selected Work")
     st.write("A concise showcase of production applications and applied AI solutions.")
 
     st.markdown(
@@ -391,24 +418,30 @@ if page == "Overview":
         <div class="mini-grid">
           <div class="mini-card">
             <div>
-              <p class="mini-index">01</p>
-              <p class="mini-meta">Natural Language Processing</p>
+              <div class="mini-top">
+                <span class="mini-index">01</span>
+                <span class="mini-icon-badge">💬 NLP</span>
+              </div>
               <h3>Tone Topic</h3>
               <p>Topic modeling and document categorization for unstructured text and CSV datasets using Latent Dirichlet Allocation (LDA) and NLTK.</p>
             </div>
           </div>
           <div class="mini-card">
             <div>
-              <p class="mini-index">02</p>
-              <p class="mini-meta">Computer Vision</p>
+              <div class="mini-top">
+                <span class="mini-index">02</span>
+                <span class="mini-icon-badge">👁️ Vision</span>
+              </div>
               <h3>Digital Yoga Trainer</h3>
               <p>Real-time pose estimation and corrective posture feedback using MediaPipe landmark coordinates and OpenCV geometry calculations.</p>
             </div>
           </div>
           <div class="mini-card">
             <div>
-              <p class="mini-index">03</p>
-              <p class="mini-meta">Machine Learning</p>
+              <div class="mini-top">
+                <span class="mini-index">03</span>
+                <span class="mini-icon-badge">🧠 ML</span>
+              </div>
               <h3>Multi-label Prediction</h3>
               <p>Ensemble model stacking combining Random Forests with a Logistic Regression meta-learner for complex multi-label classification (75% accuracy).</p>
             </div>
@@ -418,19 +451,18 @@ if page == "Overview":
         unsafe_allow_html=True,
     )
 
-    if st.button("Explore All Projects & Applications →", type="primary"):
-        st.session_state.nav = "Projects"
-        st.rerun()
+    if st.button("Explore All Projects & Applications →", type="primary", key="overview_all_projects_btn"):
+        set_page("Projects")
 
     st.markdown(
         """
         <div class="marquee"><div class="marquee-track">
-        <span>Python</span><span>SQL</span><span>REST APIs</span><span>JSON</span><span>TensorFlow</span><span>PyTorch</span>
-        <span>Streamlit</span><span>Plotly</span><span>OpenCV</span><span>MediaPipe</span><span>Google Cloud</span><span>Pandas</span>
-        <span>NumPy</span><span>Git</span><span>Node.js</span><span>MongoDB</span><span>Scikit-Learn</span><span>NLTK</span><span>XGBoost</span>
-        <span>Python</span><span>SQL</span><span>REST APIs</span><span>JSON</span><span>TensorFlow</span><span>PyTorch</span>
-        <span>Streamlit</span><span>Plotly</span><span>OpenCV</span><span>MediaPipe</span><span>Google Cloud</span><span>Pandas</span>
-        <span>NumPy</span><span>Git</span><span>Node.js</span><span>MongoDB</span><span>Scikit-Learn</span><span>NLTK</span><span>XGBoost</span>
+        <span>🐍 Python</span><span>🗄️ SQL</span><span>🔌 REST APIs</span><span>📦 JSON</span><span>🧠 TensorFlow</span><span>🔥 PyTorch</span>
+        <span>⚡ Streamlit</span><span>📊 Plotly</span><span>👁️ OpenCV</span><span>🦾 MediaPipe</span><span>☁️ Google Cloud</span><span>🐼 Pandas</span>
+        <span>🔢 NumPy</span><span>🐙 Git</span><span>🟢 Node.js</span><span>🍃 MongoDB</span><span>🤖 Scikit-Learn</span><span>💬 NLTK</span><span>🌲 XGBoost</span>
+        <span>🐍 Python</span><span>🗄️ SQL</span><span>🔌 REST APIs</span><span>📦 JSON</span><span>🧠 TensorFlow</span><span>🔥 PyTorch</span>
+        <span>⚡ Streamlit</span><span>📊 Plotly</span><span>👁️ OpenCV</span><span>🦾 MediaPipe</span><span>☁️ Google Cloud</span><span>🐼 Pandas</span>
+        <span>🔢 NumPy</span><span>🐙 Git</span><span>🟢 Node.js</span><span>🍃 MongoDB</span><span>🤖 Scikit-Learn</span><span>💬 NLTK</span><span>🌲 XGBoost</span>
         </div></div>
         """,
         unsafe_allow_html=True,
@@ -440,9 +472,9 @@ if page == "Overview":
 # =========================================================================
 # 2. ABOUT SECTION
 # =========================================================================
-elif page == "About":
+elif page_clean == "About":
     section_header(
-        "About",
+        "👤 About Dev Kotak",
         "Driven by engineering rigor, analytical depth, and clear communication.",
         "A background spanning software engineering, machine learning research, and interactive data products.",
     )
@@ -451,7 +483,7 @@ elif page == "About":
 
     with about_col1:
         with st.container(border=True):
-            st.markdown("### Professional Narrative")
+            st.markdown("### 💡 Professional Narrative")
             st.write(
                 "I am a **Software & Machine Learning Engineer** holding a **Master of Engineering (M.Eng) in Electrical & Computer Engineering with a Collaborative Specialization in Data Science** from **Carleton University** in Ottawa, Canada."
             )
@@ -464,34 +496,34 @@ elif page == "About":
 
     with about_col2:
         with st.container(border=True):
-            st.markdown("### Engineering Philosophy")
+            st.markdown("### 🎯 Engineering Philosophy")
             st.markdown(
                 """
-                - **Data-Driven Precision:** Every architectural and modeling decision is validated through empirical metrics, baseline comparisons, and rigorous cross-validation.
-                - **Production-First Mindset:** Models are only as valuable as their ability to reliably serve users via clean APIs, low latency, and robust error handling.
-                - **Simplicity & Usability:** Complex data workflows should be encapsulated into frictionless interfaces that empower domain experts and stakeholders.
+                - **📊 Data-Driven Precision:** Every architectural and modeling decision is validated through empirical metrics, baseline comparisons, and rigorous cross-validation.
+                - **⚡ Production-First Mindset:** Models are only as valuable as their ability to reliably serve users via clean APIs, low latency, and robust error handling.
+                - **✨ Simplicity & Usability:** Complex data workflows should be encapsulated into frictionless interfaces that empower domain experts and stakeholders.
                 """
             )
             tag_row(["Deterministic APIs", "Empirical Evaluation", "Clean Architecture", "Continuous Learning"])
 
     st.write("")
-    st.markdown("### Focus Areas & Capabilities")
+    st.markdown("### 🛠️ Focus Areas & Capabilities")
     focus_c1, focus_c2, focus_c3 = st.columns(3)
     with focus_c1:
         with st.container(border=True):
-            st.markdown("#### 01. Machine Learning Systems")
+            st.markdown("#### 🧠 01. Machine Learning Systems")
             st.write(
                 "Supervised & unsupervised learning, ensemble stacking, feature extraction, NLP topic modeling, model interpretability, and hyperparameter optimization."
             )
     with focus_c2:
         with st.container(border=True):
-            st.markdown("#### 02. Computer Vision & Signals")
+            st.markdown("#### 👁️ 02. Computer Vision & Signals")
             st.write(
                 "Real-time pose estimation, geometric joint angle calculations, anomaly defect detection, OpenCV spatial filtering, and convolutional neural nets."
             )
     with focus_c3:
         with st.container(border=True):
-            st.markdown("#### 03. Backend & Full-Stack")
+            st.markdown("#### ⚡ 03. Backend & Full-Stack")
             st.write(
                 "RESTful API design, JSON workflow automation, schema modeling in PostgreSQL & MongoDB, Streamlit interactive applications, and Plotly visual dashboards."
             )
@@ -499,22 +531,20 @@ elif page == "About":
     st.write("")
     about_btn1, about_btn2 = st.columns(2)
     with about_btn1:
-        if st.button("View Career & Research Timeline →", key="about_exp_btn", type="primary", width="stretch"):
-            st.session_state.nav = "Experience"
-            st.rerun()
+        if st.button("💼 View Career & Research Timeline →", key="about_exp_btn", type="primary", width="stretch"):
+            set_page("Experience")
     with about_btn2:
-        if st.button("Get in Touch / Contact ✉", key="about_contact_btn", width="stretch"):
-            st.session_state.nav = "Contact"
-            st.rerun()
+        if st.button("✉ Get in Touch / Contact", key="about_contact_btn", width="stretch"):
+            set_page("Contact")
 
 
 # =========================================================================
 # 3. PROJECTS SECTION
 # =========================================================================
-elif page == "Projects":
+elif page_clean == "Projects":
     st.markdown('<span id="projects"></span>', unsafe_allow_html=True)
     section_header(
-        "Selected Projects",
+        "🚀 Selected Projects",
         "Work I can explain end to end.",
         "Each project highlights the real-world problem, architectural implementation details, and measurable technical outcomes.",
     )
@@ -523,13 +553,19 @@ elif page == "Projects":
     if "project_filter" not in st.session_state:
         st.session_state.project_filter = "All"
 
-    categories = ["All", "NLP", "Computer Vision", "Machine Learning", "Data Analytics"]
+    categories = [
+        ("✨ All", "All"),
+        ("💬 NLP", "NLP"),
+        ("👁️ Computer Vision", "Computer Vision"),
+        ("🧠 Machine Learning", "Machine Learning"),
+        ("📊 Data Analytics", "Data Analytics"),
+    ]
     f_cols = st.columns(len(categories))
-    for i, cat in enumerate(categories):
+    for i, (label, cat_val) in enumerate(categories):
         with f_cols[i]:
-            btn_type = "primary" if st.session_state.project_filter == cat else "secondary"
-            if st.button(cat, key=f"cat_btn_{cat}", type=btn_type, width="stretch"):
-                st.session_state.project_filter = cat
+            btn_type = "primary" if st.session_state.project_filter == cat_val else "secondary"
+            if st.button(label, key=f"cat_btn_{cat_val}", type=btn_type, width="stretch"):
+                st.session_state.project_filter = cat_val
                 st.rerun()
 
     current_filter = st.session_state.project_filter
@@ -544,25 +580,25 @@ elif page == "Projects":
                 if tone_img.exists():
                     st.image(str(tone_img), width="stretch")
             with right:
-                st.markdown('<p class="project-type">Featured Project · Natural Language Processing</p>', unsafe_allow_html=True)
+                st.markdown('<p class="project-type">⭐ Featured Flagship Project · Natural Language Processing</p>', unsafe_allow_html=True)
                 st.markdown("### Tone Topic")
                 st.write(
                     "An interactive NLP application that transforms raw unstructured text or uploaded CSV documents into explorable semantic topic models using Latent Dirichlet Allocation (LDA) and NLTK tokenization."
                 )
                 st.markdown(
-                    "**Key Outcome:** Real-time semantic topic distribution &amp; token extraction<br>**Contribution:** End-to-end NLP pipeline, LDA modeling, and responsive Streamlit UI",
+                    "**🎯 Key Outcome:** Real-time semantic topic distribution &amp; token extraction<br>**🛠️ Contribution:** End-to-end NLP pipeline, LDA modeling, and responsive Streamlit UI",
                     unsafe_allow_html=True,
                 )
                 tag_row(["Python", "Streamlit", "NLTK", "Gensim", "Pandas", "Topic Modeling", "LDA"])
 
-                with st.expander("Technical Architecture & Pipeline Details"):
+                with st.expander("📐 Technical Architecture & Pipeline Details"):
                     st.write(
                         "1. **Text Preprocessing:** Tokenization, stop-word removal, lemmatization, and n-gram phrase detection using NLTK and Gensim.\n"
                         "2. **Vector Space Modeling:** Dictionary creation and Bag-of-Words (BoW) corpus mapping with TF-IDF filtering.\n"
                         "3. **Inference & Visualization:** Multithreaded LDA model fitting with coherence score optimization (C_v) and interactive topic distribution matrices."
                     )
 
-                st.link_button("Open Live Application ↗", "https://tonetopic.streamlit.app/", width="stretch")
+                st.link_button("🌐 Open Live Application ↗", "https://tonetopic.streamlit.app/", width="stretch")
 
     st.write("")
 
@@ -570,20 +606,20 @@ elif page == "Projects":
     all_projects = [
         {
             "category": "Computer Vision",
-            "type": "Computer Vision & Pose Estimation",
+            "type": "👁️ Computer Vision & Pose Estimation",
             "title": "Digital Yoga Trainer",
             "description": "Real-time pose estimation and posture correction system using MediaPipe landmark detection and OpenCV angular calculations to deliver instant bio-mechanical feedback.",
             "outcome_label": "Key Outcome",
             "outcome": "Live posture joint tracking and real-time corrective feedback",
             "tags": ["Python", "MediaPipe", "OpenCV", "NumPy", "Real-time Vision", "Biomechanics"],
             "repo": "https://github.com/dev856/Yoga-Pose-Estimation",
-            "repo_label": "View GitHub Repository ↗",
+            "repo_label": "🐙 View GitHub Repository ↗",
             "image": "images/Tadasana.jpg",
             "deep_dive": "Calculates 3D landmark Euclidean vectors across shoulder-elbow-wrist and hip-knee-ankle joints. Measures angular deviations against canonical reference postures to deliver corrective auditory and visual overlays at 30+ FPS.",
         },
         {
             "category": "Data Analytics",
-            "type": "Data Analytics & Exploration Workbench",
+            "type": "📊 Data Analytics & Exploration Workbench",
             "title": "InsightSync",
             "description": "Interactive data analytics platform enabling multi-variate statistical distributions, correlation matrices, dynamic filtering, and automated exploratory visual charts for complex datasets.",
             "outcome_label": "Key Outcome",
@@ -591,24 +627,24 @@ elif page == "Projects":
             "tags": ["Python", "Streamlit", "Plotly", "Pandas", "Data Analytics", "EDA"],
             "demo": "https://insight-sync.streamlit.app/",
             "repo": GITHUB,
-            "repo_label": "Explore GitHub Profile ↗",
+            "repo_label": "🐙 Explore GitHub Profile ↗",
             "deep_dive": "Automates exploratory data analysis (EDA) with automatic column type inference, missingness analysis, Pearson/Spearman correlation heatmaps, and customizable statistical distribution visualizations.",
         },
         {
             "category": "Machine Learning",
-            "type": "Ensemble Machine Learning",
+            "type": "🧠 Ensemble Machine Learning",
             "title": "Multi-label Dataset Prediction",
             "description": "A competition-grade modeling architecture combining Random Forest base estimators with a Logistic Regression meta-classifier for complex multi-label predictive tasks.",
             "outcome_label": "Measured Result",
             "outcome": "75% measured classification accuracy on competitive benchmark",
             "tags": ["Python", "Scikit-Learn", "Pandas", "Meta-learning", "Ensemble Stacking"],
             "repo": GITHUB,
-            "repo_label": "Explore GitHub Profile ↗",
+            "repo_label": "🐙 Explore GitHub Profile ↗",
             "deep_dive": "Employs stratified k-fold out-of-fold validation to generate meta-features across diverse tree ensembles, mitigating label correlation biases and maximizing generalization accuracy.",
         },
         {
             "category": "Computer Vision",
-            "type": "Computer Vision & Manufacturing",
+            "type": "👁️ Computer Vision & Manufacturing",
             "title": "FabriSense",
             "description": "Automated textile inspection and defect detection solution utilizing computer vision preprocessing, spatial feature extraction, and classification algorithms.",
             "outcome_label": "Key Outcome",
@@ -616,19 +652,19 @@ elif page == "Projects":
             "tags": ["Python", "Streamlit", "OpenCV", "Image Processing", "Defect Detection"],
             "demo": "http://fabrisense.streamlit.app/",
             "repo": GITHUB,
-            "repo_label": "Explore GitHub Profile ↗",
+            "repo_label": "🐙 Explore GitHub Profile ↗",
             "deep_dive": "Applies adaptive thresholding, morphological filtering, and spatial frequency analysis to identify weaving defects, stains, and structural anomalies in industrial fabric feeds.",
         },
         {
             "category": "Machine Learning",
-            "type": "Geospatial Modeling & Remote Sensing",
+            "type": "🛰️ Geospatial Modeling & Remote Sensing",
             "title": "Hydrological Basin Flux Estimator",
             "description": "Geospatial machine learning models developed at ISRO benchmarked across XGBoost, LSTM neural networks, and Random Forests for discharge forecasting from MODIS and ERA5 satellite data.",
             "outcome_label": "Key Outcome",
             "outcome": "Accurate river discharge prediction across Indian river basins",
             "tags": ["Python", "Google Earth Engine", "XGBoost", "LSTM", "Geospatial Data"],
             "repo": GITHUB,
-            "repo_label": "Explore GitHub Profile ↗",
+            "repo_label": "🐙 Explore GitHub Profile ↗",
             "deep_dive": "Ingests multi-spectral satellite observations, precipitation grids, and digital elevation models to model non-linear runoff dynamics using temporal recurrent networks.",
         },
     ]
@@ -648,20 +684,19 @@ elif page == "Projects":
     with st.container(border=True):
         p_cta_col1, p_cta_col2 = st.columns([1.5, 1], vertical_alignment="center")
         with p_cta_col1:
-            st.markdown("### Looking to build or deploy a custom AI/ML system?")
+            st.markdown("### 💡 Looking to build or deploy a custom AI/ML system?")
             st.write("I am available for engineering roles and technical collaborations across predictive modeling, computer vision, and high-performance backend systems.")
         with p_cta_col2:
-            if st.button("Start a Conversation ✉", key="proj_contact_btn", type="primary", width="stretch"):
-                st.session_state.nav = "Contact"
-                st.rerun()
+            if st.button("✉ Start a Conversation", key="proj_contact_btn", type="primary", width="stretch"):
+                set_page("Contact")
 
 
 # =========================================================================
 # 4. EXPERIENCE SECTION
 # =========================================================================
-elif page == "Experience":
+elif page_clean == "Experience":
     section_header(
-        "Experience",
+        "💼 Experience & Appointments",
         "From research prototypes to production workflows.",
         "Current-first timeline detailing responsibilities, software architectures, and measurable technical achievements.",
     )
@@ -764,21 +799,19 @@ elif page == "Experience":
     st.write("")
     exp_btn1, exp_btn2 = st.columns(2)
     with exp_btn1:
-        if st.button("Explore Technical Skills & Capabilities →", key="exp_skills_btn", type="primary", width="stretch"):
-            st.session_state.nav = "Skills"
-            st.rerun()
+        if st.button("⚙ Explore Technical Skills & Capabilities →", key="exp_skills_btn", type="primary", width="stretch"):
+            set_page("Skills")
     with exp_btn2:
-        if st.button("Review Academic Credentials & Education →", key="exp_edu_btn", width="stretch"):
-            st.session_state.nav = "Education"
-            st.rerun()
+        if st.button("🎓 Review Academic Credentials & Education →", key="exp_edu_btn", width="stretch"):
+            set_page("Education")
 
 
 # =========================================================================
 # 5. SKILLS SECTION
 # =========================================================================
-elif page == "Skills":
+elif page_clean == "Skills":
     section_header(
-        "Capabilities",
+        "⚙ Capabilities & Stack",
         "Skills backed by applied engineering.",
         "Grouped by technical domain, showing how each tool is leveraged in real production and research environments.",
     )
@@ -786,19 +819,19 @@ elif page == "Skills":
     groups = [
         (
             "01",
-            "Software & Systems",
+            "💻 Software & Systems",
             "Backend logic, API architectures, schema design, and dependable data pipelines.",
             ["Python", "SQL", "REST APIs", "JSON", "Java", "Node.js", "MongoDB", "C/C++", "Linux", "Docker Basics"],
         ),
         (
             "02",
-            "Data Science & ML",
+            "🧠 Data Science & ML",
             "Statistical modeling, model evaluation, NLP pipelines, and computer vision algorithms.",
             ["Pandas", "NumPy", "Scikit-Learn", "TensorFlow", "PyTorch", "NLTK", "OpenCV", "MediaPipe", "Gensim", "XGBoost"],
         ),
         (
             "03",
-            "Product & Delivery",
+            "🚀 Product & Delivery",
             "Interactive dashboards, cloud environments, version control, and stakeholder interfaces.",
             ["Streamlit", "Plotly", "Git", "GitHub", "Google Cloud", "HTML5 / CSS3", "Agile / Scrum"],
         ),
@@ -818,11 +851,11 @@ elif page == "Skills":
     st.markdown(f'<div class="skill-grid">{cards}</div>', unsafe_allow_html=True)
 
     st.write("")
-    st.markdown("### Engineering Methodologies")
+    st.markdown("### 🔬 Engineering Methodologies")
     meth_left, meth_right = st.columns(2)
     with meth_left:
         with st.container(border=True):
-            st.markdown("#### Applied Machine Learning & Evaluation")
+            st.markdown("#### 🧠 Applied Machine Learning & Evaluation")
             st.write(
                 "Experience selecting appropriate model architectures (tree ensembles, neural networks, linear meta-models), conducting stratified cross-validation, and optimizing metrics beyond basic accuracy (precision, recall, ROC-AUC, F1-score)."
             )
@@ -830,7 +863,7 @@ elif page == "Skills":
 
     with meth_right:
         with st.container(border=True):
-            st.markdown("#### Systems Integration & API Design")
+            st.markdown("#### 🔌 Systems Integration & API Design")
             st.write(
                 "Experience connecting disparate software systems via structured RESTful APIs, designing deterministic JSON schema contracts, and automating repetitive data synchronization tasks with high reliability."
             )
@@ -839,21 +872,19 @@ elif page == "Skills":
     st.write("")
     skills_btn1, skills_btn2 = st.columns(2)
     with skills_btn1:
-        if st.button("Explore Applications Built with this Stack →", key="skills_proj_btn", type="primary", width="stretch"):
-            st.session_state.nav = "Projects"
-            st.rerun()
+        if st.button("🚀 Explore Applications Built with this Stack →", key="skills_proj_btn", type="primary", width="stretch"):
+            set_page("Projects")
     with skills_btn2:
-        if st.button("Get in Touch / Discuss Collaboration ✉", key="skills_contact_btn", width="stretch"):
-            st.session_state.nav = "Contact"
-            st.rerun()
+        if st.button("✉ Get in Touch / Discuss Collaboration", key="skills_contact_btn", width="stretch"):
+            set_page("Contact")
 
 
 # =========================================================================
 # 6. EDUCATION SECTION
 # =========================================================================
-elif page == "Education":
+elif page_clean == "Education":
     section_header(
-        "Education",
+        "🎓 Academic Credentials",
         "A rigorous systems foundation with a data science focus.",
         "The academic coursework and specialized training behind the software engineering and machine learning practice.",
     )
@@ -869,18 +900,18 @@ elif page == "Education":
         <div class="edu-grid">
           <div class="edu-card">
             {carleton_img_html}
-            <span class="date-pill">2023 — 2025 · Graduate</span>
-            <h3>Master of Engineering</h3>
+            <span class="date-pill">📅 2023 — 2025 · Graduate</span>
+            <h3>🎓 Master of Engineering</h3>
             <p>Electrical &amp; Computer Engineering · Collaborative Specialization in Data Science</p>
-            <p><strong>CGPA:</strong> 10.5 / 12.0 &nbsp;·&nbsp; <strong>Location:</strong> Ottawa, Canada</p>
+            <p><strong>🏆 CGPA:</strong> 10.5 / 12.0 &nbsp;·&nbsp; <strong>📍 Location:</strong> Ottawa, Canada</p>
             <strong class="edu-school">Carleton University</strong>
           </div>
           <div class="edu-card">
             {charusat_img_html}
-            <span class="date-pill">2019 — 2023 · Undergraduate</span>
-            <h3>Bachelor of Technology</h3>
+            <span class="date-pill">📅 2019 — 2023 · Undergraduate</span>
+            <h3>🎓 Bachelor of Technology</h3>
             <p>Computer Science &amp; Engineering</p>
-            <p><strong>CGPA:</strong> 9.25 / 10.0 (WES: 3.92 / 4.0) &nbsp;·&nbsp; <strong>Merit Scholarship Awardee</strong></p>
+            <p><strong>🏆 CGPA:</strong> 9.25 / 10.0 (WES: 3.92 / 4.0) &nbsp;·&nbsp; <strong>⭐ Merit Scholarship Awardee</strong></p>
             <strong class="edu-school">Charotar University of Science and Technology</strong>
           </div>
         </div>
@@ -889,12 +920,12 @@ elif page == "Education":
     )
 
     st.write("")
-    st.markdown("### Academic Coursework")
+    st.markdown("### 📚 Academic Coursework")
     st.markdown(
         """
         <div class="coursework-grid">
           <div class="coursework-card">
-            <h4>Graduate Specialization</h4>
+            <h4>🔬 Graduate Specialization</h4>
             <ul>
               <li>Applied Programming &amp; Algorithms</li>
               <li>Pattern Classification &amp; Machine Learning</li>
@@ -904,7 +935,7 @@ elif page == "Education":
             </ul>
           </div>
           <div class="coursework-card">
-            <h4>Computer Science Foundation</h4>
+            <h4>💻 Computer Science Foundation</h4>
             <ul>
               <li>Data Structures &amp; Algorithms</li>
               <li>Database Management Systems (SQL)</li>
@@ -914,7 +945,7 @@ elif page == "Education":
             </ul>
           </div>
           <div class="coursework-card">
-            <h4>Applied Engineering</h4>
+            <h4>⚡ Applied Engineering</h4>
             <ul>
               <li>Software Engineering Methodologies</li>
               <li>Artificial Intelligence &amp; Neural Nets</li>
@@ -931,13 +962,12 @@ elif page == "Education":
     st.write("")
     edu_btn1, edu_btn2 = st.columns(2)
     with edu_btn1:
-        if st.button("Explore Research & Industry Roles →", key="edu_exp_btn", type="primary", width="stretch"):
-            st.session_state.nav = "Experience"
-            st.rerun()
+        if st.button("💼 Explore Research & Industry Roles →", key="edu_exp_btn", type="primary", width="stretch"):
+            set_page("Experience")
     with edu_btn2:
         if resume_path.exists():
             st.download_button(
-                "Download Official Résumé PDF ⤓",
+                "📥 Download Official Résumé PDF ⤓",
                 resume_path.read_bytes(),
                 "Dev-Kotak-Resume.pdf",
                 "application/pdf",
@@ -949,9 +979,9 @@ elif page == "Education":
 # =========================================================================
 # 7. TESTIMONIALS SECTION
 # =========================================================================
-elif page == "Testimonials":
+elif page_clean == "Testimonials":
     section_header(
-        "Endorsements",
+        "💬 Endorsements & Feedback",
         "Collaborative feedback & peer highlights.",
         "Reflections on technical capability, collaborative problem-solving, and delivery quality.",
     )
@@ -988,20 +1018,19 @@ elif page == "Testimonials":
     with st.container(border=True):
         t_cta_col1, t_cta_col2 = st.columns([1.5, 1], vertical_alignment="center")
         with t_cta_col1:
-            st.markdown("### Ready to connect or discuss an opportunity?")
+            st.markdown("### 💡 Ready to connect or discuss an opportunity?")
             st.write("Whether for full-time engineering roles, technical advisory, or project collaboration, I look forward to hearing from you.")
         with t_cta_col2:
-            if st.button("Get in Touch ✉", key="testim_contact_btn", type="primary", width="stretch"):
-                st.session_state.nav = "Contact"
-                st.rerun()
+            if st.button("✉ Get in Touch", key="testim_contact_btn", type="primary", width="stretch"):
+                set_page("Contact")
 
 
 # =========================================================================
 # 8. RÉSUMÉ SECTION
 # =========================================================================
-elif page == "Résumé":
+elif page_clean == "Résumé":
     section_header(
-        "Résumé",
+        "📄 Professional Résumé",
         "A concise view of credentials and experience.",
         "Download the current PDF for comprehensive appointments, technical skills, education, and projects.",
     )
@@ -1009,7 +1038,7 @@ elif page == "Résumé":
     st.markdown(
         """
         <div class="resume-panel">
-          <p class="section-kicker">Curriculum Vitae</p>
+          <p class="section-kicker">📄 Curriculum Vitae</p>
           <h3>Dev Kotak · Current Résumé</h3>
           <p>Complete record of academic credentials, software &amp; machine learning appointments, technical skills, and selected projects.</p>
         </div>
@@ -1020,7 +1049,7 @@ elif page == "Résumé":
     st.write("")
     if resume_path.exists():
         st.download_button(
-            "Download Résumé PDF ⤓",
+            "📥 Download Résumé PDF ⤓",
             resume_path.read_bytes(),
             "Dev-Kotak-Resume.pdf",
             "application/pdf",
@@ -1031,32 +1060,32 @@ elif page == "Résumé":
         st.error("The résumé PDF is currently unavailable.")
 
     st.divider()
-    st.markdown("### Executive Summary")
+    st.markdown("### 📊 Executive Summary")
     summary_left, summary_right = st.columns(2)
     with summary_left:
         with st.container(border=True):
-            st.markdown("#### Key Qualifications")
+            st.markdown("#### 🎯 Key Qualifications")
             st.write(
-                "- **Graduate Degree:** M.Eng in Electrical & Computer Engineering with Data Science Specialization from Carleton University.\n"
-                "- **7 Appointments:** Experience across ISRO (Space Applications Centre), Ottawa Centre for Cognitive Therapy, Jupiter AI Labs, and Zummit Infolabs.\n"
-                "- **Core Stack:** Python, SQL, REST APIs, Streamlit, Pandas, Scikit-Learn, TensorFlow, OpenCV, MediaPipe."
+                "- **🎓 Graduate Degree:** M.Eng in Electrical & Computer Engineering with Data Science Specialization from Carleton University.\n"
+                "- **💼 7 Appointments:** Experience across ISRO (Space Applications Centre), Ottawa Centre for Cognitive Therapy, Jupiter AI Labs, and Zummit Infolabs.\n"
+                "- **⚡ Core Stack:** Python, SQL, REST APIs, Streamlit, Pandas, Scikit-Learn, TensorFlow, OpenCV, MediaPipe."
             )
     with summary_right:
         with st.container(border=True):
-            st.markdown("#### Primary Competencies")
+            st.markdown("#### 🧠 Primary Competencies")
             st.write(
-                "- **Applied Machine Learning:** Classification, Regression, Ensemble Stacking, Evaluation Metrics.\n"
-                "- **Computer Vision & NLP:** Pose estimation, Object Detection, Topic Modeling, Text Extraction.\n"
-                "- **Product Delivery:** Rapid prototyping with Streamlit, Plotly visual analytics, RESTful backend APIs."
+                "- **🤖 Applied Machine Learning:** Classification, Regression, Ensemble Stacking, Evaluation Metrics.\n"
+                "- **👁️ Computer Vision & NLP:** Pose estimation, Object Detection, Topic Modeling, Text Extraction.\n"
+                "- **🚀 Product Delivery:** Rapid prototyping with Streamlit, Plotly visual analytics, RESTful backend APIs."
             )
 
 
 # =========================================================================
 # 9. CONTACT SECTION
 # =========================================================================
-elif page == "Contact":
+elif page_clean == "Contact":
     section_header(
-        "Correspondence",
+        "✉ Correspondence",
         "Have a problem to solve?",
         "Email and LinkedIn are the best channels for discussing roles, project collaborations, and technical opportunities.",
     )
@@ -1064,9 +1093,9 @@ elif page == "Contact":
     st.markdown(
         f"""
         <div class="letter-card">
-          <p class="section-kicker">Direct Contact</p>
+          <p class="section-kicker">✉ Direct Contact</p>
           <p class="letter-email"><a href="mailto:{EMAIL}">{EMAIL}</a></p>
-          <p>Open to software engineering, data science, and applied machine learning roles in Ottawa, across Canada, and remotely.</p>
+          <p>📍 Open to software engineering, data science, and applied machine learning roles in Ottawa, across Canada, and remotely.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1075,14 +1104,14 @@ elif page == "Contact":
     st.write("")
     email_col, linkedin_col, github_col = st.columns(3)
     with email_col:
-        st.link_button("Write an Email ↗", f"mailto:{EMAIL}", width="stretch")
+        st.link_button("✉ Write an Email ↗", f"mailto:{EMAIL}", width="stretch")
     with linkedin_col:
-        st.link_button("LinkedIn Profile ↗", LINKEDIN, width="stretch")
+        st.link_button("💼 LinkedIn Profile ↗", LINKEDIN, width="stretch")
     with github_col:
-        st.link_button("GitHub Profile ↗", GITHUB, width="stretch")
+        st.link_button("🐙 GitHub Profile ↗", GITHUB, width="stretch")
 
     st.write("")
-    st.markdown("### Send a Direct Message")
+    st.markdown("### 💬 Send a Direct Message")
     with st.form("contact_form", clear_on_submit=True):
         f_left, f_right = st.columns(2)
         with f_left:
@@ -1091,7 +1120,7 @@ elif page == "Contact":
             sender_email = st.text_input("Your Email *", placeholder="e.g. alex@company.com")
         subject = st.text_input("Subject", placeholder="e.g. Software Engineering Role / Project Discussion")
         message = st.text_area("Message *", placeholder="Write your message here...", height=140)
-        submitted = st.form_submit_button("Send Message ↗", type="primary")
+        submitted = st.form_submit_button("✈ Send Message ↗", type="primary")
 
         if submitted:
             if not name.strip() or not sender_email.strip() or not message.strip():
