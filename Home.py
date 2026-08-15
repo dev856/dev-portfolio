@@ -230,7 +230,7 @@ with st.sidebar:
               <div class="portrait sm">
                 <div class="portrait-frame"><img src="{profile_uri}" alt="Dev Kotak" /></div>
               </div>
-              <p class="brand-kicker">Portfolio</p>
+              <p class="brand-kicker">Studio · Portfolio</p>
               <h2 class="brand-name">Dev Kotak</h2>
               <p class="brand-role">Software &amp; Machine Learning Engineer</p>
               <div class="status-pill"><span class="status-dot"></span>Open to opportunities</div>
@@ -243,7 +243,7 @@ with st.sidebar:
             """
             <div class="brand">
               <div class="monogram">DK</div>
-              <p class="brand-kicker">Portfolio</p>
+              <p class="brand-kicker">Studio · Portfolio</p>
               <h2 class="brand-name">Dev Kotak</h2>
               <p class="brand-role">Software &amp; Machine Learning Engineer</p>
               <div class="status-pill"><span class="status-dot"></span>Open to opportunities</div>
@@ -275,7 +275,7 @@ if page == "Overview":
         """
         <div class="hero">
           <p class="section-kicker">Software &amp; Applied Machine Learning</p>
-          <h1>I build <em class="serif-accent">intelligent software</em> from data, models &amp; modern web systems.</h1>
+          <h1>I build <span class="blue-accent">intelligent software</span> from data, models &amp; modern web systems.</h1>
           <p class="section-description">Master of Engineering graduate in Electrical &amp; Computer Engineering (Data Science Specialization) at Carleton University. Experienced across production REST APIs, computer vision, natural language processing, and interactive data workbenches.</p>
         </div>
         """,
