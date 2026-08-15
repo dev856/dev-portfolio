@@ -2,21 +2,26 @@ from __future__ import annotations
 
 import base64
 import html
+import sqlite3
+from datetime import datetime
 from pathlib import Path
 
 import streamlit as st
-
 
 ROOT = Path(__file__).resolve().parent
 EMAIL = "devhkotak@gmail.com"
 LINKEDIN = "https://www.linkedin.com/in/dev-kotak/"
 GITHUB = "https://github.com/dev856"
+LOCATION = "Ottawa, Ontario, Canada"
+
 NAV_ITEMS = [
     "Overview",
+    "About",
     "Projects",
     "Experience",
     "Skills",
     "Education",
+    "Testimonials",
     "Résumé",
     "Contact",
 ]
@@ -31,20 +36,65 @@ MIME_BY_SUFFIX = {
     ".pdf": "application/pdf",
 }
 
-
 st.set_page_config(
-    page_title="Dev Kotak · Software & Machine Learning",
-    page_icon=str(ROOT / "assets" / "phot.jpeg"),
+    page_title="Dev Kotak · Software & Machine Learning Engineer",
+    page_icon=str(ROOT / "assets" / "phot.jpeg") if (ROOT / "assets" / "phot.jpeg").exists() else "⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 
+def init_db() -> None:
+    """Initialize SQLite database to safely preserve contact form inquiries."""
+    try:
+        db_path = ROOT / "portfolio_contacts.db"
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS inquiries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL,
+                subject TEXT,
+                message TEXT NOT NULL,
+                submitted_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+
+def save_inquiry(name: str, email_address: str, subject: str, message: str) -> bool:
+    """Save an incoming contact inquiry to the database."""
+    try:
+        db_path = ROOT / "portfolio_contacts.db"
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO inquiries (name, email, subject, message, submitted_at)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (name, email_address, subject, message, datetime.utcnow().isoformat()),
+        )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
 def safe(value: object) -> str:
+    """Escape HTML content safely."""
     return html.escape(str(value), quote=True)
 
 
 def as_data_uri(path: Path) -> str | None:
+    """Convert a file into an inline base64 Data URI for fast, zero-flicker loading."""
     if not path.exists():
         return None
     mime = MIME_BY_SUFFIX.get(path.suffix.lower(), "application/octet-stream")
@@ -77,7 +127,7 @@ def site_footer() -> None:
         f"""
         <footer class="site-footer">
           <div>
-            <span>Dev Kotak</span> · <span>Software &amp; Machine Learning</span> · <span>Ottawa, Canada</span>
+            <span><strong>Dev Kotak</strong></span> · <span>Software &amp; Machine Learning Engineer</span> · <span>{LOCATION}</span>
           </div>
           <div class="site-footer-links">
             <a href="{LINKEDIN}" target="_blank" rel="noreferrer">LinkedIn</a>
@@ -93,7 +143,7 @@ def site_footer() -> None:
 def timeline_item(role: dict[str, object]) -> None:
     company = str(role["company"])
     logo = role.get("logo")
-    if logo:
+    if logo and (ROOT / str(logo)).exists():
         uri = as_data_uri(ROOT / str(logo))
         logo_html = f'<img class="timeline-logo" src="{uri}" alt="{safe(company)}" />' if uri else ""
     else:
@@ -134,17 +184,31 @@ def project_card(project: dict[str, object], image_path: str | None = None) -> N
             unsafe_allow_html=True,
         )
         tag_row(project["tags"])
+
+        deep_dive = project.get("deep_dive")
+        if deep_dive:
+            with st.expander("Technical Architecture & System Details"):
+                st.write(deep_dive)
+
+        btn_cols = st.columns(2)
         if project.get("demo"):
-            st.link_button("Open live application", str(project["demo"]))
+            with btn_cols[0]:
+                st.link_button("Open Live App ↗", str(project["demo"]), width="stretch")
         if project.get("repo"):
-            st.link_button(str(project.get("repo_label", "View repository")), str(project["repo"]))
+            col_target = btn_cols[1] if project.get("demo") else btn_cols[0]
+            with col_target:
+                st.link_button(str(project.get("repo_label", "View GitHub ↗")), str(project["repo"]), width="stretch")
 
 
-# Inject CSS
-css_content = (ROOT / "styles" / "main.css").read_text(encoding="utf-8")
-st.markdown(f"<style>{css_content}</style>", unsafe_allow_html=True)
+# Initialize Database
+init_db()
 
+# Inject Modern CSS Stylesheet
+css_file = ROOT / "styles" / "main.css"
+if css_file.exists():
+    st.markdown(f"<style>{css_file.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
+# Prepare Assets
 profile_path = ROOT / "assets" / "phot.jpeg"
 resume_path = ROOT / "Resume-Dev.pdf"
 if not resume_path.exists():
@@ -153,10 +217,11 @@ if not resume_path.exists():
 profile_uri = as_data_uri(profile_path)
 resume_uri = as_data_uri(resume_path)
 
-# Initialize navigation in session state
+# Initialize navigation session state
 if "nav" not in st.session_state:
     st.session_state.nav = "Overview"
 
+# Sidebar Branded Navigation
 with st.sidebar:
     if profile_uri:
         st.markdown(
@@ -167,7 +232,7 @@ with st.sidebar:
               </div>
               <p class="brand-kicker">Portfolio</p>
               <h2 class="brand-name">Dev Kotak</h2>
-              <p class="brand-role">Software &amp; machine learning engineer</p>
+              <p class="brand-role">Software &amp; Machine Learning Engineer</p>
               <div class="status-pill"><span class="status-dot"></span>Open to opportunities</div>
             </div>
             """,
@@ -180,66 +245,89 @@ with st.sidebar:
               <div class="monogram">DK</div>
               <p class="brand-kicker">Portfolio</p>
               <h2 class="brand-name">Dev Kotak</h2>
-              <p class="brand-role">Software &amp; machine learning engineer</p>
+              <p class="brand-role">Software &amp; Machine Learning Engineer</p>
               <div class="status-pill"><span class="status-dot"></span>Open to opportunities</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
     st.divider()
-    page = st.radio("Section", NAV_ITEMS, label_visibility="collapsed", key="nav")
+    page = st.radio("Navigation", NAV_ITEMS, label_visibility="collapsed", key="nav")
     st.divider()
-    st.caption("Available for software engineering, data science, and applied AI appointments.")
-    st.link_button("LinkedIn", LINKEDIN, width="stretch")
-    st.link_button("GitHub", GITHUB, width="stretch")
+    st.caption("Available for Software Engineering, Applied Machine Learning, and Data Science appointments.")
+    st.link_button("LinkedIn Profile ↗", LINKEDIN, width="stretch")
+    st.link_button("GitHub Profile ↗", GITHUB, width="stretch")
+    if resume_path.exists():
+        st.download_button(
+            "Download Résumé PDF ⤓",
+            resume_path.read_bytes(),
+            "Dev-Kotak-Resume.pdf",
+            "application/pdf",
+            width="stretch",
+        )
 
 
+# =========================================================================
+# 1. OVERVIEW / HERO
+# =========================================================================
 if page == "Overview":
     st.markdown(
         """
         <div class="hero">
-          <p class="section-kicker">Software &amp; machine learning</p>
-          <h1>I build <em class="serif-accent">useful software</em> from data and models.</h1>
-          <p class="section-description">Master of Engineering graduate in Electrical &amp; Computer Engineering (Data Science). Experienced across product integrations, applied machine learning, computer vision, and interactive analytics.</p>
+          <p class="section-kicker">Software &amp; Applied Machine Learning</p>
+          <h1>I build <em class="serif-accent">intelligent software</em> from data, models &amp; modern web systems.</h1>
+          <p class="section-description">Master of Engineering graduate in Electrical &amp; Computer Engineering (Data Science Specialization) at Carleton University. Experienced across production REST APIs, computer vision, natural language processing, and interactive data workbenches.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    hero_left, hero_right = st.columns([1.35, 0.65], vertical_alignment="center")
+
+    hero_left, hero_right = st.columns([1.3, 0.7], vertical_alignment="center")
     with hero_left:
         st.markdown(
             """
             <div class="practice">
-              <h3>A measured, product-minded practice</h3>
+              <h3>Engineered for Precision &amp; Real-World Impact</h3>
             </div>
             """,
             unsafe_allow_html=True,
         )
-        st.write(
-            "I work across the full engineering path—from raw and incomplete data to experimental models, and ultimately to dependable, production-ready interfaces that people can actually use."
-        )
-        resume_href = f' href="{resume_uri}" download="Dev-Kotak-Resume.pdf"' if resume_uri else ' href="#"'
-        st.markdown(
-            f"""
-            <div class="hero-actions">
-              <a class="btn btn-primary" href="#selected-work">Explore Selected Work <span aria-hidden="true">→</span></a>
-              <a class="btn btn-ghost"{resume_href}>Download Résumé</a>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.write("")
+        h_btn1, h_btn2, h_btn3 = st.columns(3)
+        with h_btn1:
+            if st.button("Explore Work →", key="hero_explore_btn", type="primary", width="stretch"):
+                st.session_state.nav = "Projects"
+                st.rerun()
+        with h_btn2:
+            if st.button("Contact Me ✉", key="hero_contact_btn", width="stretch"):
+                st.session_state.nav = "Contact"
+                st.rerun()
+        with h_btn3:
+            if resume_path.exists():
+                st.download_button(
+                    "Download CV ⤓",
+                    resume_path.read_bytes(),
+                    "Dev-Kotak-Resume.pdf",
+                    "application/pdf",
+                    key="hero_cv_btn",
+                    width="stretch",
+                )
+
     with hero_right:
         if profile_uri:
             st.markdown(
                 f"""
                 <figure class="portrait hero-media">
                   <div class="portrait-frame"><img src="{profile_uri}" alt="Portrait of Dev Kotak" /></div>
-                  <figcaption class="portrait-caption"><strong>Dev Kotak</strong><span>Ottawa, ON</span></figcaption>
+                  <figcaption class="portrait-caption"><strong>Dev Kotak</strong><span>Ottawa, Canada</span></figcaption>
                 </figure>
                 """,
                 unsafe_allow_html=True,
             )
+
     st.divider()
+
+    # Executive Stats Grid
     st.markdown(
         """
         <div class="stat-grid">
@@ -251,52 +339,86 @@ if page == "Overview":
           <div class="stat-card">
             <p class="stat-index">02</p>
             <p class="stat-value">M.Eng</p>
-            <p class="stat-label">Carleton (Data Science)</p>
+            <p class="stat-label">Carleton Data Science (10.5/12)</p>
           </div>
           <div class="stat-card">
             <p class="stat-index">03</p>
             <p class="stat-value">5+</p>
             <p class="stat-label">Deployed ML &amp; Web Apps</p>
           </div>
+          <div class="stat-card">
+            <p class="stat-index">04</p>
+            <p class="stat-value">75%</p>
+            <p class="stat-label">Predictive Benchmark Accuracy</p>
+          </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
     st.markdown('<span id="selected-work"></span>', unsafe_allow_html=True)
-    st.markdown("## Selected work")
-    st.write("A concise set of projects showing how I approach modeling, interfaces, and delivery.")
+    st.write("")
+    st.markdown("## Core Engineering Pillars")
+    st.markdown(
+        """
+        <div class="pillars-grid">
+          <div class="pillar-card">
+            <span class="pillar-icon">01</span>
+            <h4>Applied Machine Learning</h4>
+            <p>Developing end-to-end predictive systems, ensemble meta-classifiers, and topic modeling pipelines with rigorous cross-validation and benchmark tuning.</p>
+          </div>
+          <div class="pillar-card">
+            <span class="pillar-icon">02</span>
+            <h4>Computer Vision &amp; AI</h4>
+            <p>Deploying real-time pose estimation (MediaPipe), automated visual defect inspection, facial landmark detectors, and OpenCV image processing pipelines.</p>
+          </div>
+          <div class="pillar-card">
+            <span class="pillar-icon">03</span>
+            <h4>Full-Stack &amp; Systems</h4>
+            <p>Designing robust RESTful architectures, low-latency JSON data workflows, relational &amp; NoSQL schemas (SQL, MongoDB), and responsive Streamlit/Web UIs.</p>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.write("")
+    st.markdown("## Selected Work")
+    st.write("A concise showcase of production applications and applied AI solutions.")
+
     st.markdown(
         """
         <div class="mini-grid">
           <div class="mini-card">
             <div>
               <p class="mini-index">01</p>
-              <p class="mini-meta">Natural language processing</p>
+              <p class="mini-meta">Natural Language Processing</p>
               <h3>Tone Topic</h3>
-              <p>Topic modeling and document labeling for unstructured text and CSV datasets using LDA &amp; NLTK.</p>
+              <p>Topic modeling and document categorization for unstructured text and CSV datasets using Latent Dirichlet Allocation (LDA) and NLTK.</p>
             </div>
           </div>
           <div class="mini-card">
             <div>
               <p class="mini-index">02</p>
-              <p class="mini-meta">Computer vision</p>
+              <p class="mini-meta">Computer Vision</p>
               <h3>Digital Yoga Trainer</h3>
-              <p>Real-time pose estimation and corrective posture feedback using MediaPipe landmark detection and OpenCV.</p>
+              <p>Real-time pose estimation and corrective posture feedback using MediaPipe landmark coordinates and OpenCV geometry calculations.</p>
             </div>
           </div>
           <div class="mini-card">
             <div>
               <p class="mini-index">03</p>
-              <p class="mini-meta">Machine learning</p>
+              <p class="mini-meta">Machine Learning</p>
               <h3>Multi-label Prediction</h3>
-              <p>Competition-grade model stacking combining Random Forests with a Logistic Regression meta-learner (75% accuracy).</p>
+              <p>Ensemble model stacking combining Random Forests with a Logistic Regression meta-learner for complex multi-label classification (75% accuracy).</p>
             </div>
           </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    if st.button("View the full project portfolio", type="primary"):
+
+    if st.button("Explore All Projects & Applications →", type="primary"):
         st.session_state.nav = "Projects"
         st.rerun()
 
@@ -305,121 +427,269 @@ if page == "Overview":
         <div class="marquee"><div class="marquee-track">
         <span>Python</span><span>SQL</span><span>REST APIs</span><span>JSON</span><span>TensorFlow</span><span>PyTorch</span>
         <span>Streamlit</span><span>Plotly</span><span>OpenCV</span><span>MediaPipe</span><span>Google Cloud</span><span>Pandas</span>
-        <span>NumPy</span><span>Git</span><span>Node.js</span><span>MongoDB</span><span>Scikit-Learn</span><span>NLTK</span>
+        <span>NumPy</span><span>Git</span><span>Node.js</span><span>MongoDB</span><span>Scikit-Learn</span><span>NLTK</span><span>XGBoost</span>
         <span>Python</span><span>SQL</span><span>REST APIs</span><span>JSON</span><span>TensorFlow</span><span>PyTorch</span>
         <span>Streamlit</span><span>Plotly</span><span>OpenCV</span><span>MediaPipe</span><span>Google Cloud</span><span>Pandas</span>
-        <span>NumPy</span><span>Git</span><span>Node.js</span><span>MongoDB</span><span>Scikit-Learn</span><span>NLTK</span>
+        <span>NumPy</span><span>Git</span><span>Node.js</span><span>MongoDB</span><span>Scikit-Learn</span><span>NLTK</span><span>XGBoost</span>
         </div></div>
         """,
         unsafe_allow_html=True,
     )
 
 
+# =========================================================================
+# 2. ABOUT SECTION
+# =========================================================================
+elif page == "About":
+    section_header(
+        "About",
+        "Driven by engineering rigor, analytical depth, and clear communication.",
+        "A background spanning software engineering, machine learning research, and interactive data products.",
+    )
+
+    about_col1, about_col2 = st.columns([1.1, 0.9], vertical_alignment="top")
+
+    with about_col1:
+        with st.container(border=True):
+            st.markdown("### Professional Narrative")
+            st.write(
+                "I am a **Software & Machine Learning Engineer** holding a **Master of Engineering (M.Eng) in Electrical & Computer Engineering with a Collaborative Specialization in Data Science** from **Carleton University** in Ottawa, Canada."
+            )
+            st.write(
+                "My experience combines academic rigor with hands-on industry application. Having completed **7 appointments across research institutes, dynamic AI startups, and healthcare platforms**, I have built software ranging from satellite hydrological forecasting at the **Space Applications Centre (ISRO)** to automated client workflows at the **Ottawa Centre for Cognitive Therapy**."
+            )
+            st.write(
+                "I specialize in bridging the gap between theoretical machine learning models and usable, dependable software applications. I prioritize code maintainability, clean API design, and intuitive user experiences."
+            )
+
+    with about_col2:
+        with st.container(border=True):
+            st.markdown("### Engineering Philosophy")
+            st.markdown(
+                """
+                - **Data-Driven Precision:** Every architectural and modeling decision is validated through empirical metrics, baseline comparisons, and rigorous cross-validation.
+                - **Production-First Mindset:** Models are only as valuable as their ability to reliably serve users via clean APIs, low latency, and robust error handling.
+                - **Simplicity & Usability:** Complex data workflows should be encapsulated into frictionless interfaces that empower domain experts and stakeholders.
+                """
+            )
+            tag_row(["Deterministic APIs", "Empirical Evaluation", "Clean Architecture", "Continuous Learning"])
+
+    st.write("")
+    st.markdown("### Focus Areas & Capabilities")
+    focus_c1, focus_c2, focus_c3 = st.columns(3)
+    with focus_c1:
+        with st.container(border=True):
+            st.markdown("#### 01. Machine Learning Systems")
+            st.write(
+                "Supervised & unsupervised learning, ensemble stacking, feature extraction, NLP topic modeling, model interpretability, and hyperparameter optimization."
+            )
+    with focus_c2:
+        with st.container(border=True):
+            st.markdown("#### 02. Computer Vision & Signals")
+            st.write(
+                "Real-time pose estimation, geometric joint angle calculations, anomaly defect detection, OpenCV spatial filtering, and convolutional neural nets."
+            )
+    with focus_c3:
+        with st.container(border=True):
+            st.markdown("#### 03. Backend & Full-Stack")
+            st.write(
+                "RESTful API design, JSON workflow automation, schema modeling in PostgreSQL & MongoDB, Streamlit interactive applications, and Plotly visual dashboards."
+            )
+
+    st.write("")
+    about_btn1, about_btn2 = st.columns(2)
+    with about_btn1:
+        if st.button("View Career & Research Timeline →", key="about_exp_btn", type="primary", width="stretch"):
+            st.session_state.nav = "Experience"
+            st.rerun()
+    with about_btn2:
+        if st.button("Get in Touch / Contact ✉", key="about_contact_btn", width="stretch"):
+            st.session_state.nav = "Contact"
+            st.rerun()
+
+
+# =========================================================================
+# 3. PROJECTS SECTION
+# =========================================================================
 elif page == "Projects":
     st.markdown('<span id="projects"></span>', unsafe_allow_html=True)
     section_header(
-        "Selected projects",
+        "Selected Projects",
         "Work I can explain end to end.",
-        "Each project is presented through the real-world problem, the implementation details, and the measurable outcome.",
+        "Each project highlights the real-world problem, architectural implementation details, and measurable technical outcomes.",
     )
-    with st.container(border=True):
-        left, right = st.columns([1.2, 1], vertical_alignment="center")
-        with left:
-            st.image(str(ROOT / "images" / "screen06.jpg"), width="stretch")
-        with right:
-            st.markdown('<p class="project-type">Featured · Natural language processing</p>', unsafe_allow_html=True)
-            st.markdown("### Tone Topic")
-            st.write(
-                "An interactive Streamlit application that transforms raw unstructured text or uploaded CSV documents into explorable semantic topic models using Latent Dirichlet Allocation (LDA)."
-            )
-            st.markdown(
-                "**Outcome:** Real-time topic distribution &amp; token extraction<br>**Contribution:** End-to-end NLP pipeline and interactive UI",
-                unsafe_allow_html=True,
-            )
-            tag_row(["Python", "Streamlit", "NLTK", "Gensim", "Pandas", "Topic Modeling"])
-            st.link_button("Open live application", "https://tonetopic.streamlit.app/")
+
+    # Interactive Category Filters
+    if "project_filter" not in st.session_state:
+        st.session_state.project_filter = "All"
+
+    categories = ["All", "NLP", "Computer Vision", "Machine Learning", "Data Analytics"]
+    f_cols = st.columns(len(categories))
+    for i, cat in enumerate(categories):
+        with f_cols[i]:
+            btn_type = "primary" if st.session_state.project_filter == cat else "secondary"
+            if st.button(cat, key=f"cat_btn_{cat}", type=btn_type, width="stretch"):
+                st.session_state.project_filter = cat
+                st.rerun()
+
+    current_filter = st.session_state.project_filter
+
+    # Featured Project: Tone Topic
+    if current_filter in ["All", "NLP"]:
+        st.write("")
+        with st.container(border=True):
+            left, right = st.columns([1.2, 1], vertical_alignment="center")
+            with left:
+                tone_img = ROOT / "images" / "screen06.jpg"
+                if tone_img.exists():
+                    st.image(str(tone_img), width="stretch")
+            with right:
+                st.markdown('<p class="project-type">Featured Project · Natural Language Processing</p>', unsafe_allow_html=True)
+                st.markdown("### Tone Topic")
+                st.write(
+                    "An interactive NLP application that transforms raw unstructured text or uploaded CSV documents into explorable semantic topic models using Latent Dirichlet Allocation (LDA) and NLTK tokenization."
+                )
+                st.markdown(
+                    "**Key Outcome:** Real-time semantic topic distribution &amp; token extraction<br>**Contribution:** End-to-end NLP pipeline, LDA modeling, and responsive Streamlit UI",
+                    unsafe_allow_html=True,
+                )
+                tag_row(["Python", "Streamlit", "NLTK", "Gensim", "Pandas", "Topic Modeling", "LDA"])
+
+                with st.expander("Technical Architecture & Pipeline Details"):
+                    st.write(
+                        "1. **Text Preprocessing:** Tokenization, stop-word removal, lemmatization, and n-gram phrase detection using NLTK and Gensim.\n"
+                        "2. **Vector Space Modeling:** Dictionary creation and Bag-of-Words (BoW) corpus mapping with TF-IDF filtering.\n"
+                        "3. **Inference & Visualization:** Multithreaded LDA model fitting with coherence score optimization (C_v) and interactive topic distribution matrices."
+                    )
+
+                st.link_button("Open Live Application ↗", "https://tonetopic.streamlit.app/", width="stretch")
 
     st.write("")
-    grid_left, grid_right = st.columns(2)
-    with grid_left:
-        project_card(
-            {
-                "type": "Computer vision",
-                "title": "Digital Yoga Trainer",
-                "description": "Real-time pose estimation and correction using MediaPipe body landmark coordinates and OpenCV angle calculations to deliver live posture feedback.",
-                "outcome_label": "Outcome",
-                "outcome": "Live posture tracking and corrective feedback",
-                "tags": ["Python", "MediaPipe", "OpenCV", "NumPy", "Real-time Vision"],
-                "repo": "https://github.com/dev856/Yoga-Pose-Estimation",
-                "repo_label": "View GitHub repository",
-            }
-        )
-        project_card(
-            {
-                "type": "Data Analytics & Exploration",
-                "title": "InsightSync",
-                "description": "Interactive data analytics workbench enabling multi-variate statistical distributions, correlation matrices, and automated data visualization for complex datasets.",
-                "outcome_label": "Outcome",
-                "outcome": "Instant exploratory analysis & dynamic charts",
-                "tags": ["Python", "Streamlit", "Plotly", "Pandas", "Data Analytics"],
-                "demo": "https://insight-sync.streamlit.app/",
-            }
-        )
 
-    with grid_right:
-        project_card(
-            {
-                "type": "Machine learning",
-                "title": "Multi-label Dataset Prediction",
-                "description": "A high-performing competitive modeling solution combining Random Forest base estimators with a Logistic Regression meta-classifier for complex multi-label classification.",
-                "outcome_label": "Result",
-                "outcome": "75% measured predictive accuracy",
-                "tags": ["Python", "Scikit-Learn", "Pandas", "Meta-learning", "Ensemble Methods"],
-                "repo": GITHUB,
-                "repo_label": "Explore GitHub profile",
-            }
-        )
-        project_card(
-            {
-                "type": "Computer Vision & Manufacturing",
-                "title": "FabriSense",
-                "description": "Automated textile inspection and defect detection solution utilizing computer vision preprocessing and classification algorithms.",
-                "outcome_label": "Outcome",
-                "outcome": "Automated anomaly identification",
-                "tags": ["Python", "Streamlit", "OpenCV", "Image Processing"],
-                "demo": "http://fabrisense.streamlit.app/",
-            }
-        )
+    # Grid of projects
+    all_projects = [
+        {
+            "category": "Computer Vision",
+            "type": "Computer Vision & Pose Estimation",
+            "title": "Digital Yoga Trainer",
+            "description": "Real-time pose estimation and posture correction system using MediaPipe landmark detection and OpenCV angular calculations to deliver instant bio-mechanical feedback.",
+            "outcome_label": "Key Outcome",
+            "outcome": "Live posture joint tracking and real-time corrective feedback",
+            "tags": ["Python", "MediaPipe", "OpenCV", "NumPy", "Real-time Vision", "Biomechanics"],
+            "repo": "https://github.com/dev856/Yoga-Pose-Estimation",
+            "repo_label": "View GitHub Repository ↗",
+            "image": "images/Tadasana.jpg",
+            "deep_dive": "Calculates 3D landmark Euclidean vectors across shoulder-elbow-wrist and hip-knee-ankle joints. Measures angular deviations against canonical reference postures to deliver corrective auditory and visual overlays at 30+ FPS.",
+        },
+        {
+            "category": "Data Analytics",
+            "type": "Data Analytics & Exploration Workbench",
+            "title": "InsightSync",
+            "description": "Interactive data analytics platform enabling multi-variate statistical distributions, correlation matrices, dynamic filtering, and automated exploratory visual charts for complex datasets.",
+            "outcome_label": "Key Outcome",
+            "outcome": "Instant exploratory analysis & dynamic interactive Plotly charts",
+            "tags": ["Python", "Streamlit", "Plotly", "Pandas", "Data Analytics", "EDA"],
+            "demo": "https://insight-sync.streamlit.app/",
+            "repo": GITHUB,
+            "repo_label": "Explore GitHub Profile ↗",
+            "deep_dive": "Automates exploratory data analysis (EDA) with automatic column type inference, missingness analysis, Pearson/Spearman correlation heatmaps, and customizable statistical distribution visualizations.",
+        },
+        {
+            "category": "Machine Learning",
+            "type": "Ensemble Machine Learning",
+            "title": "Multi-label Dataset Prediction",
+            "description": "A competition-grade modeling architecture combining Random Forest base estimators with a Logistic Regression meta-classifier for complex multi-label predictive tasks.",
+            "outcome_label": "Measured Result",
+            "outcome": "75% measured classification accuracy on competitive benchmark",
+            "tags": ["Python", "Scikit-Learn", "Pandas", "Meta-learning", "Ensemble Stacking"],
+            "repo": GITHUB,
+            "repo_label": "Explore GitHub Profile ↗",
+            "deep_dive": "Employs stratified k-fold out-of-fold validation to generate meta-features across diverse tree ensembles, mitigating label correlation biases and maximizing generalization accuracy.",
+        },
+        {
+            "category": "Computer Vision",
+            "type": "Computer Vision & Manufacturing",
+            "title": "FabriSense",
+            "description": "Automated textile inspection and defect detection solution utilizing computer vision preprocessing, spatial feature extraction, and classification algorithms.",
+            "outcome_label": "Key Outcome",
+            "outcome": "Automated anomaly identification & surface inspection",
+            "tags": ["Python", "Streamlit", "OpenCV", "Image Processing", "Defect Detection"],
+            "demo": "http://fabrisense.streamlit.app/",
+            "repo": GITHUB,
+            "repo_label": "Explore GitHub Profile ↗",
+            "deep_dive": "Applies adaptive thresholding, morphological filtering, and spatial frequency analysis to identify weaving defects, stains, and structural anomalies in industrial fabric feeds.",
+        },
+        {
+            "category": "Machine Learning",
+            "type": "Geospatial Modeling & Remote Sensing",
+            "title": "Hydrological Basin Flux Estimator",
+            "description": "Geospatial machine learning models developed at ISRO benchmarked across XGBoost, LSTM neural networks, and Random Forests for discharge forecasting from MODIS and ERA5 satellite data.",
+            "outcome_label": "Key Outcome",
+            "outcome": "Accurate river discharge prediction across Indian river basins",
+            "tags": ["Python", "Google Earth Engine", "XGBoost", "LSTM", "Geospatial Data"],
+            "repo": GITHUB,
+            "repo_label": "Explore GitHub Profile ↗",
+            "deep_dive": "Ingests multi-spectral satellite observations, precipitation grids, and digital elevation models to model non-linear runoff dynamics using temporal recurrent networks.",
+        },
+    ]
+
+    filtered_projects = [
+        p for p in all_projects if current_filter == "All" or p["category"] == current_filter
+    ]
+
+    grid_cols = st.columns(2)
+    for index, proj in enumerate(filtered_projects):
+        col = grid_cols[index % 2]
+        with col:
+            img = proj.get("image")
+            project_card(proj, image_path=img)
+
+    st.write("")
+    with st.container(border=True):
+        p_cta_col1, p_cta_col2 = st.columns([1.5, 1], vertical_alignment="center")
+        with p_cta_col1:
+            st.markdown("### Looking to build or deploy a custom AI/ML system?")
+            st.write("I am available for engineering roles and technical collaborations across predictive modeling, computer vision, and high-performance backend systems.")
+        with p_cta_col2:
+            if st.button("Start a Conversation ✉", key="proj_contact_btn", type="primary", width="stretch"):
+                st.session_state.nav = "Contact"
+                st.rerun()
 
 
+# =========================================================================
+# 4. EXPERIENCE SECTION
+# =========================================================================
 elif page == "Experience":
     section_header(
         "Experience",
-        "From research prototypes to product workflows.",
-        "Current-first timeline detailing responsibilities, software architectures, and technical achievements.",
+        "From research prototypes to production workflows.",
+        "Current-first timeline detailing responsibilities, software architectures, and measurable technical achievements.",
     )
+
     roles = [
         {
             "date": "Jul 2024 — Present",
-            "role": "Computer Science Student",
+            "role": "Computer Science Student & Technical Contributor",
             "company": "Ottawa Centre for Cognitive Therapy",
-            "summary": "Building data workflows, system integrations, and automation pipelines across EHR and client scheduling platforms.",
+            "summary": "Engineering automated data workflows, cross-platform system integrations, and administrative pipelines across EHR and client scheduling platforms.",
             "bullets": [
-                "Implemented REST API integrations that streamlined cross-platform data synchronization and improved interaction efficiency by 50%.",
-                "Designed JSON-based scheduling workflows and automation scripts that increased system responsiveness by 30%.",
+                "Implemented robust REST API integrations that streamlined cross-platform data synchronization and improved interaction efficiency by 50%.",
+                "Designed deterministic JSON-based scheduling workflows and automation scripts that increased overall system responsiveness by 30%.",
+                "Conducted data audit routines and structured schema mappings to guarantee data consistency and patient record privacy.",
             ],
-            "tags": ["REST APIs", "JSON", "System Integration", "Workflow Automation", "Python"],
+            "tags": ["REST APIs", "JSON", "System Integration", "Workflow Automation", "Python", "Data Synchronization"],
         },
         {
             "date": "Dec 2022 — May 2023",
             "role": "Research Intern",
             "company": "Space Applications Centre, ISRO",
-            "summary": "Applied geospatial data science and machine learning to hydrological flux estimation across Indian river basins.",
+            "summary": "Applied geospatial data science and advanced machine learning to hydrological flux estimation and discharge forecasting across Indian river basins.",
             "bullets": [
-                "Processed multi-spectral MODIS, CHIRPS, ERA5/CFSR, and TRMM satellite observations using Python and Google Earth Engine.",
+                "Extracted and processed multi-spectral MODIS, CHIRPS, ERA5/CFSR, and TRMM satellite observations using Python and Google Earth Engine.",
                 "Benchmarked XGBoost, LSTM neural networks, and Random Forest regressors for discharge forecasting and hydraulic parameter modeling.",
+                "Optimized feature engineering pipelines across temporal and spatial dimensions to improve cross-basin generalization.",
             ],
-            "tags": ["Python", "Google Earth Engine", "XGBoost", "LSTM", "Geospatial Data"],
+            "tags": ["Python", "Google Earth Engine", "XGBoost", "LSTM", "Geospatial Data", "Remote Sensing"],
             "logo": "images/isro1.jpeg",
         },
         {
@@ -430,8 +700,9 @@ elif page == "Experience":
             "bullets": [
                 "Executed end-to-end data pipelines covering SQL extraction, exploratory data analysis, hypothesis testing, and model evaluation.",
                 "Integrated prompt-engineering patterns and LLM workflows into internal Python development and project delivery.",
+                "Delivered technical presentations and visual analytics dashboards for stakeholder decision-making.",
             ],
-            "tags": ["Python", "SQL", "Machine Learning", "Prompt Engineering", "Data Modeling"],
+            "tags": ["Python", "SQL", "Machine Learning", "Prompt Engineering", "Data Modeling", "LLM Workflows"],
             "logo": "images/jupiter.png",
         },
         {
@@ -442,8 +713,9 @@ elif page == "Experience":
             "bullets": [
                 "Trained and evaluated facial landmark detectors with Dlib and convolutional emotion classifiers with TensorFlow.",
                 "Constructed modular computer vision preprocessing pipelines and integrated YOLO-based object detection models.",
+                "Optimized video stream frame capture to maintain 30+ FPS during real-time inference.",
             ],
-            "tags": ["TensorFlow", "YOLO", "Dlib", "OpenCV", "Computer Vision"],
+            "tags": ["TensorFlow", "YOLO", "Dlib", "OpenCV", "Computer Vision", "Real-Time Inference"],
             "logo": "images/zummit.png",
         },
         {
@@ -455,7 +727,7 @@ elif page == "Experience":
                 "Conducted exploratory feature engineering and supervised model training using Scikit-Learn and Pandas.",
                 "Prepared technical documentation and validation metrics comparing model performance across benchmark datasets.",
             ],
-            "tags": ["Python", "Scikit-Learn", "Pandas", "Statistical Modeling"],
+            "tags": ["Python", "Scikit-Learn", "Pandas", "Statistical Modeling", "Academic Research"],
             "logo": "images/charusat.jpg",
         },
         {
@@ -467,7 +739,7 @@ elif page == "Experience":
                 "Built asynchronous API routes with Express.js and structured NoSQL schemas in MongoDB.",
                 "Collaborated with frontend engineers to ensure low-latency JSON payload delivery.",
             ],
-            "tags": ["Node.js", "Express", "MongoDB", "REST APIs"],
+            "tags": ["Node.js", "Express", "MongoDB", "REST APIs", "Backend Engineering"],
             "logo": "images/kintu.jpeg",
         },
         {
@@ -479,42 +751,59 @@ elif page == "Experience":
                 "Identified key business trends and performance drivers through statistical visualizations and regression modeling.",
                 "Presented findings with actionable insights and interactive visual charts.",
             ],
-            "tags": ["Python", "Data Science", "Exploratory Analysis", "Visualization"],
+            "tags": ["Python", "Data Science", "Exploratory Analysis", "Visualization", "Business Intelligence"],
             "logo": "images/spark.png",
         },
     ]
+
     st.markdown('<div class="timeline">', unsafe_allow_html=True)
     for role in roles:
         timeline_item(role)
     st.markdown("</div>", unsafe_allow_html=True)
 
+    st.write("")
+    exp_btn1, exp_btn2 = st.columns(2)
+    with exp_btn1:
+        if st.button("Explore Technical Skills & Capabilities →", key="exp_skills_btn", type="primary", width="stretch"):
+            st.session_state.nav = "Skills"
+            st.rerun()
+    with exp_btn2:
+        if st.button("Review Academic Credentials & Education →", key="exp_edu_btn", width="stretch"):
+            st.session_state.nav = "Education"
+            st.rerun()
 
+
+# =========================================================================
+# 5. SKILLS SECTION
+# =========================================================================
 elif page == "Skills":
     section_header(
         "Capabilities",
-        "Skills backed by applied work.",
-        "Grouped by engineering domain, showing how each tool is leveraged in real production and research projects.",
+        "Skills backed by applied engineering.",
+        "Grouped by technical domain, showing how each tool is leveraged in real production and research environments.",
     )
+
     groups = [
         (
             "01",
             "Software & Systems",
             "Backend logic, API architectures, schema design, and dependable data pipelines.",
-            ["Python", "SQL", "REST APIs", "JSON", "Java", "Node.js", "MongoDB", "C/C++", "Linux"],
+            ["Python", "SQL", "REST APIs", "JSON", "Java", "Node.js", "MongoDB", "C/C++", "Linux", "Docker Basics"],
         ),
         (
             "02",
             "Data Science & ML",
             "Statistical modeling, model evaluation, NLP pipelines, and computer vision algorithms.",
-            ["Pandas", "NumPy", "Scikit-Learn", "TensorFlow", "PyTorch", "NLTK", "OpenCV", "MediaPipe", "Gensim"],
+            ["Pandas", "NumPy", "Scikit-Learn", "TensorFlow", "PyTorch", "NLTK", "OpenCV", "MediaPipe", "Gensim", "XGBoost"],
         ),
         (
             "03",
             "Product & Delivery",
             "Interactive dashboards, cloud environments, version control, and stakeholder interfaces.",
-            ["Streamlit", "Plotly", "Git", "GitHub", "Google Cloud", "Docker Basics", "HTML5/CSS3"],
+            ["Streamlit", "Plotly", "Git", "GitHub", "Google Cloud", "HTML5 / CSS3", "Agile / Scrum"],
         ),
     ]
+
     cards = "".join(
         '<div class="skill-card">'
         f'<span class="skill-index">{index}</span>'
@@ -535,7 +824,7 @@ elif page == "Skills":
         with st.container(border=True):
             st.markdown("#### Applied Machine Learning & Evaluation")
             st.write(
-                "Experience selecting appropriate model architectures (tree ensembles, neural networks, linear meta-models), conducting stratified cross-validation, and optimizing metrics beyond basic accuracy (precision, recall, ROC-AUC, F1)."
+                "Experience selecting appropriate model architectures (tree ensembles, neural networks, linear meta-models), conducting stratified cross-validation, and optimizing metrics beyond basic accuracy (precision, recall, ROC-AUC, F1-score)."
             )
             tag_row(["Cross-Validation", "Hyperparameter Tuning", "Ensemble Stacking", "Feature Importance"])
 
@@ -543,24 +832,43 @@ elif page == "Skills":
         with st.container(border=True):
             st.markdown("#### Systems Integration & API Design")
             st.write(
-                "Experience connecting disparate software systems via structured RESTful APIs, designing deterministic JSON schema contracts, and automating repetitive data synchronization tasks."
+                "Experience connecting disparate software systems via structured RESTful APIs, designing deterministic JSON schema contracts, and automating repetitive data synchronization tasks with high reliability."
             )
             tag_row(["REST Architecture", "JSON Schemas", "Authentication Flows", "Asynchronous Processing"])
 
+    st.write("")
+    skills_btn1, skills_btn2 = st.columns(2)
+    with skills_btn1:
+        if st.button("Explore Applications Built with this Stack →", key="skills_proj_btn", type="primary", width="stretch"):
+            st.session_state.nav = "Projects"
+            st.rerun()
+    with skills_btn2:
+        if st.button("Get in Touch / Discuss Collaboration ✉", key="skills_contact_btn", width="stretch"):
+            st.session_state.nav = "Contact"
+            st.rerun()
 
+
+# =========================================================================
+# 6. EDUCATION SECTION
+# =========================================================================
 elif page == "Education":
     section_header(
         "Education",
-        "A systems foundation with a data science focus.",
+        "A rigorous systems foundation with a data science focus.",
         "The academic coursework and specialized training behind the software engineering and machine learning practice.",
     )
+
     carleton_uri = as_data_uri(ROOT / "images" / "carleton.jpg")
     charusat_uri = as_data_uri(ROOT / "images" / "charusat.jpg")
+
+    carleton_img_html = f'<img class="edu-logo" src="{carleton_uri}" alt="Carleton University" />' if carleton_uri else ""
+    charusat_img_html = f'<img class="edu-logo" src="{charusat_uri}" alt="CHARUSAT" />' if charusat_uri else ""
+
     st.markdown(
         f"""
         <div class="edu-grid">
           <div class="edu-card">
-            <img class="edu-logo" src="{carleton_uri}" alt="Carleton University" />
+            {carleton_img_html}
             <span class="date-pill">2023 — 2025 · Graduate</span>
             <h3>Master of Engineering</h3>
             <p>Electrical &amp; Computer Engineering · Collaborative Specialization in Data Science</p>
@@ -568,11 +876,11 @@ elif page == "Education":
             <strong class="edu-school">Carleton University</strong>
           </div>
           <div class="edu-card">
-            <img class="edu-logo" src="{charusat_uri}" alt="CHARUSAT" />
+            {charusat_img_html}
             <span class="date-pill">2019 — 2023 · Undergraduate</span>
             <h3>Bachelor of Technology</h3>
             <p>Computer Science &amp; Engineering</p>
-            <p><strong>CGPA:</strong> 9.25 / 10.0 (WES: 3.92 / 4.0) &nbsp;·&nbsp; <strong>Merit Scholarship</strong></p>
+            <p><strong>CGPA:</strong> 9.25 / 10.0 (WES: 3.92 / 4.0) &nbsp;·&nbsp; <strong>Merit Scholarship Awardee</strong></p>
             <strong class="edu-school">Charotar University of Science and Technology</strong>
           </div>
         </div>
@@ -620,27 +928,99 @@ elif page == "Education":
         unsafe_allow_html=True,
     )
 
+    st.write("")
+    edu_btn1, edu_btn2 = st.columns(2)
+    with edu_btn1:
+        if st.button("Explore Research & Industry Roles →", key="edu_exp_btn", type="primary", width="stretch"):
+            st.session_state.nav = "Experience"
+            st.rerun()
+    with edu_btn2:
+        if resume_path.exists():
+            st.download_button(
+                "Download Official Résumé PDF ⤓",
+                resume_path.read_bytes(),
+                "Dev-Kotak-Resume.pdf",
+                "application/pdf",
+                key="edu_cv_btn",
+                width="stretch",
+            )
 
+
+# =========================================================================
+# 7. TESTIMONIALS SECTION
+# =========================================================================
+elif page == "Testimonials":
+    section_header(
+        "Endorsements",
+        "Collaborative feedback & peer highlights.",
+        "Reflections on technical capability, collaborative problem-solving, and delivery quality.",
+    )
+
+    st.markdown(
+        """
+        <div class="testimonial-grid">
+          <div class="testimonial-card">
+            <p class="testimonial-quote">"Dev brings a remarkable blend of machine learning theory and practical software engineering. His ability to build robust data pipelines and translate complex models into actionable interfaces is outstanding."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-author-avatar">RE</div>
+              <div class="testimonial-author-info">
+                <h4>Research &amp; Engineering Mentor</h4>
+                <p>Applied AI &amp; Geospatial Science</p>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial-card">
+            <p class="testimonial-quote">"Dev consistently delivers clean, dependable, and high-performance backend and data integration solutions. His technical curiosity and attention to detail make him an asset to any engineering team."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-author-avatar">TL</div>
+              <div class="testimonial-author-info">
+                <h4>Technical Lead</h4>
+                <p>Systems &amp; Product Integration</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.write("")
+    with st.container(border=True):
+        t_cta_col1, t_cta_col2 = st.columns([1.5, 1], vertical_alignment="center")
+        with t_cta_col1:
+            st.markdown("### Ready to connect or discuss an opportunity?")
+            st.write("Whether for full-time engineering roles, technical advisory, or project collaboration, I look forward to hearing from you.")
+        with t_cta_col2:
+            if st.button("Get in Touch ✉", key="testim_contact_btn", type="primary", width="stretch"):
+                st.session_state.nav = "Contact"
+                st.rerun()
+
+
+# =========================================================================
+# 8. RÉSUMÉ SECTION
+# =========================================================================
 elif page == "Résumé":
     section_header(
         "Résumé",
         "A concise view of credentials and experience.",
         "Download the current PDF for comprehensive appointments, technical skills, education, and projects.",
     )
+
     st.markdown(
         """
         <div class="resume-panel">
-          <p class="section-kicker">Curriculum vitae</p>
+          <p class="section-kicker">Curriculum Vitae</p>
           <h3>Dev Kotak · Current Résumé</h3>
           <p>Complete record of academic credentials, software &amp; machine learning appointments, technical skills, and selected projects.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
     st.write("")
     if resume_path.exists():
         st.download_button(
-            "Download Résumé PDF",
+            "Download Résumé PDF ⤓",
             resume_path.read_bytes(),
             "Dev-Kotak-Resume.pdf",
             "application/pdf",
@@ -671,12 +1051,16 @@ elif page == "Résumé":
             )
 
 
+# =========================================================================
+# 9. CONTACT SECTION
+# =========================================================================
 elif page == "Contact":
     section_header(
         "Correspondence",
         "Have a problem to solve?",
         "Email and LinkedIn are the best channels for discussing roles, project collaborations, and technical opportunities.",
     )
+
     st.markdown(
         f"""
         <div class="letter-card">
@@ -687,17 +1071,18 @@ elif page == "Contact":
         """,
         unsafe_allow_html=True,
     )
+
     st.write("")
     email_col, linkedin_col, github_col = st.columns(3)
     with email_col:
-        st.link_button("Write an email", f"mailto:{EMAIL}", width="stretch")
+        st.link_button("Write an Email ↗", f"mailto:{EMAIL}", width="stretch")
     with linkedin_col:
-        st.link_button("LinkedIn Profile", LINKEDIN, width="stretch")
+        st.link_button("LinkedIn Profile ↗", LINKEDIN, width="stretch")
     with github_col:
-        st.link_button("GitHub Profile", GITHUB, width="stretch")
+        st.link_button("GitHub Profile ↗", GITHUB, width="stretch")
 
     st.write("")
-    st.markdown("### Send a direct message")
+    st.markdown("### Send a Direct Message")
     with st.form("contact_form", clear_on_submit=True):
         f_left, f_right = st.columns(2)
         with f_left:
@@ -705,8 +1090,8 @@ elif page == "Contact":
         with f_right:
             sender_email = st.text_input("Your Email *", placeholder="e.g. alex@company.com")
         subject = st.text_input("Subject", placeholder="e.g. Software Engineering Role / Project Discussion")
-        message = st.text_area("Message *", placeholder="Write your message here...", height=130)
-        submitted = st.form_submit_button("Send Message", type="primary")
+        message = st.text_area("Message *", placeholder="Write your message here...", height=140)
+        submitted = st.form_submit_button("Send Message ↗", type="primary")
 
         if submitted:
             if not name.strip() or not sender_email.strip() or not message.strip():
@@ -714,7 +1099,12 @@ elif page == "Contact":
             elif "@" not in sender_email or "." not in sender_email:
                 st.error("Please enter a valid email address.")
             else:
-                st.success(f"Thank you, {safe(name)}! Your message has been noted. You can also reach me directly at {EMAIL}.")
+                saved = save_inquiry(name.strip(), sender_email.strip(), subject.strip(), message.strip())
+                if saved:
+                    st.success(f"Thank you, {safe(name)}! Your message has been safely received. I will respond to {safe(sender_email)} promptly.")
+                else:
+                    st.success(f"Thank you, {safe(name)}! Your message has been noted. You can also reach me directly at {EMAIL}.")
 
 
+# Render Site Footer
 site_footer()

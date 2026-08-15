@@ -2,26 +2,33 @@
 
 :root {
     color-scheme: dark;
-    --bg: #090807;
-    --bg-deep: #060504;
-    --sidebar: #100e0c;
-    --surface: #13110e;
+    --bg: #080706;
+    --bg-deep: #050403;
+    --sidebar: #0e0c0a;
+    --surface: #12100d;
     --surface-2: #181512;
-    --surface-3: #221d18;
-    --text: #f7f3ec;
-    --text-soft: #dcd4c8;
-    --muted: #9c9386;
+    --surface-3: #201b15;
+    --surface-glass: rgba(18, 16, 13, 0.75);
+    --text: #f8f4ed;
+    --text-soft: #ddd5c7;
+    --muted: #9e9587;
     --gold: #c6a46c;
     --gold-bright: #e8cf94;
     --gold-deep: #8e7446;
     --gold-dim: rgba(198, 164, 108, 0.10);
+    --gold-dim-hover: rgba(198, 164, 108, 0.18);
     --line: rgba(214, 185, 133, 0.14);
-    --line-strong: rgba(214, 185, 133, 0.36);
-    --shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-    --radius: 6px;
-    --font-body: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --line-strong: rgba(214, 185, 133, 0.38);
+    --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.25);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
+    --shadow-gold: 0 0 28px rgba(198, 164, 108, 0.12);
+    --radius-sm: 4px;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --font-body: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-display: "Cormorant Garamond", Georgia, serif;
-    --font-mono: "JetBrains Mono", "IBM Plex Mono", Consolas, monospace;
+    --font-mono: "JetBrains Mono", Consolas, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -35,13 +42,15 @@ body,
     font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
 }
 
 body {
     background-color: var(--bg);
     background-image:
-        radial-gradient(ellipse 90% 50% at 50% -12%, rgba(198, 164, 108, 0.08), transparent 55%),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(198, 164, 108, 0.04), transparent 50%);
+        radial-gradient(ellipse 90% 50% at 50% -10%, rgba(198, 164, 108, 0.09), transparent 60%),
+        radial-gradient(ellipse 70% 40% at 100% 100%, rgba(198, 164, 108, 0.05), transparent 55%),
+        radial-gradient(circle 600px at 0% 30%, rgba(198, 164, 108, 0.03), transparent);
 }
 
 body::after {
@@ -50,7 +59,7 @@ body::after {
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    opacity: 0.025;
+    opacity: 0.022;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -58,12 +67,12 @@ body::after {
 [data-testid="stMain"],
 .main {
     background: transparent;
-    animation: pageIn 0.45s ease;
+    animation: pageIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes pageIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: none; }
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 header[data-testid="stHeader"] {
@@ -80,40 +89,44 @@ footer[data-testid="stFooter"] { display: none !important; }
 /* ---------- Sidebar ---------- */
 section[data-testid="stSidebar"] {
     display: block !important;
-    width: 290px !important;
-    background: linear-gradient(180deg, #110f0c 0%, var(--bg-deep) 100%);
+    width: 295px !important;
+    background: linear-gradient(180deg, #100e0b 0%, var(--bg-deep) 100%);
     border-right: 1px solid var(--line);
+    backdrop-filter: blur(12px);
 }
 
 section[data-testid="stSidebar"] > div {
-    width: 290px !important;
-    padding: 2.2rem 1.35rem 2.4rem;
+    width: 295px !important;
+    padding: 2.2rem 1.4rem 2.4rem;
 }
 
 .brand {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
 }
 
 .monogram {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    margin-bottom: 1.15rem;
+    width: 50px;
+    height: 50px;
+    margin-bottom: 1.2rem;
     border: 1px solid var(--line-strong);
-    color: var(--gold);
+    color: var(--gold-bright);
+    background: linear-gradient(135deg, rgba(198, 164, 108, 0.12) 0%, rgba(198, 164, 108, 0.02) 100%);
     font-family: var(--font-display);
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     font-weight: 600;
     letter-spacing: 0.08em;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
 }
 
 .brand-kicker {
     margin: 0 0 0.35rem;
     color: var(--gold);
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: 0.66rem;
     font-weight: 600;
     letter-spacing: 0.22em;
     text-transform: uppercase;
@@ -121,9 +134,9 @@ section[data-testid="stSidebar"] > div {
 
 section[data-testid="stSidebar"] h2,
 .brand-name {
-    margin: 0 0 0.2rem;
+    margin: 0 0 0.25rem;
     font-family: var(--font-display) !important;
-    font-size: 2.1rem;
+    font-size: 2.15rem;
     font-weight: 500;
     letter-spacing: 0.01em;
     line-height: 1.05;
@@ -142,13 +155,13 @@ section[data-testid="stSidebar"] h2,
     display: inline-flex;
     align-items: center;
     gap: 0.55rem;
-    margin: 0.15rem 0 0.4rem;
-    padding: 0.35rem 0.75rem;
-    border: 1px solid rgba(52, 211, 153, 0.28);
-    background: rgba(52, 211, 153, 0.06);
+    margin: 0.15rem 0 0.5rem;
+    padding: 0.38rem 0.8rem;
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    background: rgba(52, 211, 153, 0.07);
     color: #6ee7b7;
     font-family: var(--font-mono);
-    font-size: 0.64rem;
+    font-size: 0.65rem;
     font-weight: 600;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -165,8 +178,8 @@ section[data-testid="stSidebar"] h2,
 }
 
 @keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
-    70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+    70% { box-shadow: 0 0 0 9px rgba(16, 185, 129, 0); }
     100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
@@ -177,7 +190,7 @@ section[data-testid="stSidebar"] small {
     line-height: 1.55;
 }
 
-/* Sidebar Radio Navigation Cleanup */
+/* Sidebar Radio Navigation */
 section[data-testid="stSidebar"] [data-testid="stRadio"] > label,
 section[data-testid="stSidebar"] [data-testid="stRadio"] [data-testid="stWidgetLabel"] {
     display: none !important;
@@ -189,7 +202,7 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] {
 
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] {
     counter-reset: nav;
-    gap: 0.25rem;
+    gap: 0.3rem;
     display: flex;
     flex-direction: column;
 }
@@ -202,7 +215,7 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] 
     gap: 0.85rem;
     border: 1px solid transparent;
     border-radius: var(--radius);
-    padding: 0.55rem 0.85rem;
+    padding: 0.55rem 0.9rem;
     color: var(--muted);
     font-family: var(--font-body);
     font-size: 0.94rem;
@@ -210,7 +223,7 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] 
     letter-spacing: 0.01em;
     cursor: pointer;
     margin: 0;
-    transition: color 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label::before {
@@ -222,10 +235,9 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] 
     font-weight: 600;
     letter-spacing: 0.08em;
     min-width: 1.4rem;
-    transition: color 0.25s ease;
+    transition: color 0.22s ease;
 }
 
-/* Hide native circular radio dot element completely */
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label > div:first-child {
     display: none !important;
 }
@@ -239,8 +251,9 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] 
 
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label:hover {
     color: var(--text);
-    background: rgba(198, 164, 108, 0.06);
-    border-color: rgba(198, 164, 108, 0.16);
+    background: rgba(198, 164, 108, 0.07);
+    border-color: rgba(198, 164, 108, 0.2);
+    transform: translateX(2px);
 }
 
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label:hover::before {
@@ -250,8 +263,9 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] 
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) {
     color: #ffffff !important;
     border-color: var(--line-strong);
-    background: linear-gradient(90deg, rgba(198, 164, 108, 0.16) 0%, rgba(198, 164, 108, 0.02) 100%);
+    background: linear-gradient(90deg, rgba(198, 164, 108, 0.18) 0%, rgba(198, 164, 108, 0.03) 100%);
     font-weight: 600;
+    box-shadow: inset 0 0 12px rgba(198, 164, 108, 0.06);
 }
 
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked)::before {
@@ -262,16 +276,16 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] 
     content: "";
     position: absolute;
     left: 0;
-    top: 20%;
-    height: 60%;
-    width: 2px;
-    border-radius: 1px;
+    top: 18%;
+    height: 64%;
+    width: 3px;
+    border-radius: 2px;
     background: var(--gold-bright);
-    box-shadow: 0 0 8px rgba(228, 201, 138, 0.45);
+    box-shadow: 0 0 10px rgba(232, 207, 148, 0.6);
 }
 
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label:has(input:focus-visible) {
-    outline: 1px solid var(--gold);
+    outline: 2px solid var(--gold);
     outline-offset: 2px;
 }
 
@@ -280,29 +294,30 @@ section[data-testid="stSidebar"] [data-testid="stLinkButton"] a {
     border: 1px solid var(--line) !important;
     border-radius: var(--radius) !important;
     color: var(--text-soft) !important;
-    background: transparent !important;
+    background: rgba(255, 255, 255, 0.015) !important;
     font-family: var(--font-body);
     font-weight: 500;
     letter-spacing: 0.04em;
+    transition: all 0.22s ease !important;
 }
 
 section[data-testid="stSidebar"] [data-testid="stLinkButton"] a:hover {
     border-color: var(--line-strong) !important;
     color: var(--gold-bright) !important;
     background: var(--gold-dim) !important;
-    transform: none;
-    box-shadow: none;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 /* ---------- Layout ---------- */
 .block-container {
-    width: min(100%, 1120px);
+    width: min(100%, 1160px);
     max-width: none;
     margin: 0 auto;
-    padding: 3.8rem 2.2rem 5.5rem;
+    padding: 3.6rem 2.4rem 5.5rem;
 }
 
-[data-testid="stVerticalBlock"] { gap: 0.75rem; }
+[data-testid="stVerticalBlock"] { gap: 0.85rem; }
 
 /* ---------- Typography ---------- */
 h1, h2, h3, h4,
@@ -319,10 +334,10 @@ div[data-testid="stHeadingWithActionElements"] h3 {
 h1,
 .stMarkdown h1,
 div[data-testid="stHeadingWithActionElements"] h1 {
-    max-width: 900px;
+    max-width: 920px;
     margin: 0.2rem 0 1.2rem;
-    font-size: clamp(2.5rem, 4.8vw, 4.4rem);
-    line-height: 1.06;
+    font-size: clamp(2.5rem, 5vw, 4.4rem);
+    line-height: 1.08;
     font-weight: 500;
     text-wrap: balance;
     color: var(--text);
@@ -331,17 +346,17 @@ div[data-testid="stHeadingWithActionElements"] h1 {
 h1::after {
     content: "";
     display: block;
-    width: 44px;
-    height: 1px;
-    margin-top: 1.15rem;
-    background: var(--gold);
-    opacity: 0.75;
+    width: 48px;
+    height: 2px;
+    margin-top: 1.2rem;
+    background: linear-gradient(90deg, var(--gold-bright), transparent);
+    opacity: 0.85;
 }
 
 h2,
 .stMarkdown h2,
 div[data-testid="stHeadingWithActionElements"] h2 {
-    font-size: 2.1rem;
+    font-size: 2.2rem;
     font-weight: 500;
     letter-spacing: 0.005em;
 }
@@ -349,7 +364,7 @@ div[data-testid="stHeadingWithActionElements"] h2 {
 h3,
 .stMarkdown h3,
 div[data-testid="stHeadingWithActionElements"] h3 {
-    font-size: 1.45rem;
+    font-size: 1.48rem;
     font-weight: 500;
 }
 
@@ -359,7 +374,7 @@ em.serif-accent {
     font-style: italic !important;
     font-weight: 500;
     color: var(--gold-bright);
-    padding-right: 0.05em;
+    padding-right: 0.06em;
 }
 
 .section-kicker {
@@ -377,14 +392,14 @@ em.serif-accent {
 
 .section-kicker::before {
     content: "";
-    width: 20px;
+    width: 22px;
     height: 1px;
     background: var(--gold);
-    opacity: 0.8;
+    opacity: 0.85;
 }
 
 .section-description {
-    max-width: 660px;
+    max-width: 720px;
     margin: 0 0 2rem;
     color: var(--muted);
     font-size: 1.08rem;
@@ -415,7 +430,7 @@ em.serif-accent {
 div[data-testid="stMarkdownContainer"] p,
 .stMarkdown p {
     color: var(--text-soft);
-    line-height: 1.7;
+    line-height: 1.72;
     font-size: 0.98rem;
 }
 
@@ -431,7 +446,7 @@ a:hover {
     border-bottom-color: var(--gold-bright);
 }
 
-/* ---------- Shared card chrome ---------- */
+/* ---------- Shared Card Chrome with Glassmorphism ---------- */
 [data-testid="stVerticalBlockBorderWrapper"],
 .timeline-card,
 .skill-card,
@@ -440,14 +455,17 @@ a:hover {
 .mini-card,
 .letter-card,
 .resume-panel,
-.featured-card {
+.featured-card,
+.testimonial-card,
+.about-card {
     position: relative;
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    background: linear-gradient(180deg, rgba(255, 248, 235, 0.025) 0%, rgba(255, 248, 235, 0.008) 100%);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+    background: linear-gradient(180deg, rgba(255, 248, 235, 0.03) 0%, rgba(255, 248, 235, 0.008) 100%);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.32);
     overflow: hidden;
-    transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    backdrop-filter: blur(8px);
+    transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
 }
 
 [data-testid="stVerticalBlockBorderWrapper"]::before,
@@ -458,14 +476,16 @@ a:hover {
 .mini-card::before,
 .letter-card::before,
 .resume-panel::before,
-.featured-card::before {
+.featured-card::before,
+.testimonial-card::before,
+.about-card::before {
     content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
     opacity: 0.6;
 }
 
@@ -475,37 +495,16 @@ a:hover {
 .edu-card:hover,
 .stat-card:hover,
 .mini-card:hover,
-.featured-card:hover {
-    transform: translateY(-2px);
+.featured-card:hover,
+.testimonial-card:hover,
+.about-card:hover {
+    transform: translateY(-3px);
     border-color: var(--line-strong);
-    background: linear-gradient(180deg, rgba(255, 248, 235, 0.045) 0%, rgba(255, 248, 235, 0.015) 100%);
-    box-shadow: 0 14px 42px rgba(0, 0, 0, 0.38);
+    background: linear-gradient(180deg, rgba(255, 248, 235, 0.05) 0%, rgba(255, 248, 235, 0.015) 100%);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45), 0 0 24px rgba(198, 164, 108, 0.08);
 }
 
-div[data-testid="stMetric"] {
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface);
-    padding: 1.1rem 1.2rem;
-}
-
-div[data-testid="stMetric"] label,
-div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-}
-
-div[data-testid="stMetric"] [data-testid="stMetricValue"] {
-    font-family: var(--font-display);
-    font-size: 2rem;
-    font-weight: 500;
-    color: var(--text);
-}
-
-/* ---------- Portrait ---------- */
+/* ---------- Portrait & Avatar Styling ---------- */
 .portrait {
     margin: 0;
 }
@@ -515,7 +514,7 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
     padding: 6px;
     border: 1px solid var(--line-strong);
     background: #14110e;
-    box-shadow: inset 0 0 0 4px var(--bg), var(--shadow);
+    box-shadow: inset 0 0 0 4px var(--bg), var(--shadow-lg);
     overflow: hidden;
     border-radius: var(--radius);
 }
@@ -525,13 +524,18 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
     width: 100%;
     height: auto;
     object-fit: cover;
-    filter: contrast(1.03) saturate(0.95);
-    transform: scale(1.08);
+    filter: contrast(1.03) saturate(0.96);
+    transform: scale(1.06);
     transform-origin: center 30%;
+    transition: transform 0.4s ease;
+}
+
+.portrait:hover .portrait-frame img {
+    transform: scale(1.09);
 }
 
 .portrait.sm .portrait-frame {
-    width: 84px;
+    width: 86px;
     padding: 4px;
     box-shadow: inset 0 0 0 3px var(--bg);
 }
@@ -565,7 +569,7 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
 }
 
 .hero-media {
-    width: min(290px, 86vw);
+    width: min(295px, 88vw);
     margin: 0 auto;
 }
 
@@ -578,18 +582,18 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
     display: flex;
     flex-wrap: wrap;
     gap: 0.85rem;
-    margin-top: 1.6rem;
+    margin-top: 1.7rem;
     margin-bottom: 0.5rem;
 }
 
-/* ---------- Buttons Hierarchy & Explicit Color Fixes ---------- */
+/* ---------- Buttons Hierarchy & High Contrast ---------- */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.55rem;
     min-height: 44px;
-    padding: 0.65rem 1.4rem;
+    padding: 0.68rem 1.45rem;
     border-radius: var(--radius);
     font-family: var(--font-body);
     font-size: 0.88rem;
@@ -597,18 +601,17 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
     letter-spacing: 0.03em;
     text-decoration: none;
     cursor: pointer;
-    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Primary buttons styling with forced dark text */
 .btn-primary,
 div[data-testid="stDownloadButton"] button,
 div[data-testid="stButton"] button[kind="primary"],
 div[data-testid="stFormSubmitButton"] button {
-    color: #120e0a !important;
-    background: linear-gradient(180deg, #ecd69f 0%, #c6a46c 100%) !important;
-    border: 1px solid #c6a46c !important;
-    box-shadow: 0 2px 14px rgba(198, 164, 108, 0.25);
+    color: #110e0a !important;
+    background: linear-gradient(180deg, #edd7a2 0%, #c6a46c 100%) !important;
+    border: 1px solid #d4b278 !important;
+    box-shadow: 0 2px 16px rgba(198, 164, 108, 0.28);
     font-weight: 700 !important;
 }
 
@@ -616,7 +619,7 @@ div[data-testid="stDownloadButton"] button p,
 div[data-testid="stButton"] button[kind="primary"] p,
 div[data-testid="stFormSubmitButton"] button p,
 .btn-primary p {
-    color: #120e0a !important;
+    color: #110e0a !important;
     font-weight: 700 !important;
     margin: 0;
 }
@@ -625,14 +628,13 @@ div[data-testid="stFormSubmitButton"] button p,
 div[data-testid="stDownloadButton"] button:hover,
 div[data-testid="stButton"] button[kind="primary"]:hover,
 div[data-testid="stFormSubmitButton"] button:hover {
-    color: #0b0907 !important;
-    background: #f7e0a8 !important;
+    color: #080605 !important;
+    background: linear-gradient(180deg, #f8e4b3 0%, #d8b67b 100%) !important;
     border-color: #e8cf94 !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 20px rgba(198, 164, 108, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(198, 164, 108, 0.45);
 }
 
-/* Ghost / secondary / link buttons */
 .btn-ghost,
 div[data-testid="stLinkButton"] a,
 div[data-testid="stButton"] button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]) {
@@ -646,7 +648,7 @@ div[data-testid="stButton"] button:not([kind="primary"]):not([data-testid="stBas
     letter-spacing: 0.03em;
     text-decoration: none;
     box-shadow: none;
-    transition: all 0.25s ease;
+    transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 div[data-testid="stLinkButton"] a p,
@@ -662,8 +664,9 @@ div[data-testid="stLinkButton"] a:hover,
 div[data-testid="stButton"] button:not([kind="primary"]):hover {
     border-color: var(--gold-bright) !important;
     color: #ffffff !important;
-    background: rgba(198, 164, 108, 0.15) !important;
-    transform: translateY(-1px);
+    background: rgba(198, 164, 108, 0.16) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 18px rgba(198, 164, 108, 0.15);
 }
 
 div[data-testid="stLinkButton"] a:hover p,
@@ -675,32 +678,55 @@ div[data-testid="stButton"] button:focus-visible,
 div[data-testid="stDownloadButton"] button:focus-visible,
 div[data-testid="stLinkButton"] a:focus-visible,
 div[data-testid="stFormSubmitButton"] button:focus-visible {
-    outline: 2px solid var(--gold);
+    outline: 2px solid var(--gold-bright);
     outline-offset: 2px;
 }
 
-.practice {
-    max-width: 38rem;
+/* Category Filter Pills */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.4rem 0 2rem;
 }
 
-.practice h3 {
-    margin-bottom: 0.45rem;
+.filter-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-/* ---------- Stat cards ---------- */
+.filter-btn:hover,
+.filter-btn.active {
+    color: #ffffff;
+    border-color: var(--gold);
+    background: var(--gold-dim);
+}
+
+/* ---------- Stat Cards Grid ---------- */
 .stat-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.1rem;
-    margin: 0.6rem 0 0.8rem;
+    margin: 0.8rem 0 1.2rem;
 }
 
 .stat-card {
-    padding: 1.4rem 1.4rem 1.3rem;
+    padding: 1.5rem 1.4rem 1.3rem;
 }
 
 .stat-index {
-    margin: 0 0 1rem;
+    margin: 0 0 0.9rem;
     color: var(--gold);
     font-family: var(--font-mono);
     font-size: 0.68rem;
@@ -711,14 +737,14 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
 .stat-value {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 2.6rem;
+    font-size: 2.7rem;
     font-weight: 500;
     line-height: 1;
     color: var(--text);
 }
 
 .stat-label {
-    margin: 0.5rem 0 0;
+    margin: 0.55rem 0 0;
     color: var(--muted);
     font-family: var(--font-mono);
     font-size: 0.74rem;
@@ -727,23 +753,23 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     text-transform: uppercase;
 }
 
-/* ---------- Selected work mini cards ---------- */
+/* ---------- Selected Work Mini Cards ---------- */
 .mini-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.1rem;
-    margin: 1.25rem 0 1.25rem;
+    gap: 1.15rem;
+    margin: 1.3rem 0 1.4rem;
 }
 
 .mini-card {
-    padding: 1.5rem 1.4rem 1.4rem;
+    padding: 1.6rem 1.5rem 1.45rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
 .mini-index {
-    margin: 0 0 1.1rem;
+    margin: 0 0 1rem;
     color: var(--gold);
     font-family: var(--font-mono);
     font-size: 0.68rem;
@@ -773,12 +799,62 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     line-height: 1.6;
 }
 
-/* ---------- Marquee ---------- */
+/* ---------- Highlights / Pillars ---------- */
+.pillars-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.15rem;
+    margin: 1.4rem 0 1.6rem;
+}
+
+.pillar-card {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    background: var(--surface);
+    transition: all 0.25s ease;
+}
+
+.pillar-card:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-2px);
+}
+
+.pillar-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    background: var(--gold-dim);
+    border: 1px solid var(--line);
+    color: var(--gold-bright);
+    margin-bottom: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.pillar-card h4 {
+    margin: 0 0 0.5rem;
+    font-size: 1.3rem;
+    color: var(--text);
+}
+
+.pillar-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+/* ---------- Marquee Ticker ---------- */
 .marquee {
     position: relative;
-    margin: 2.8rem 0 0.4rem;
+    margin: 2.6rem 0 0.8rem;
     overflow: hidden;
-    padding-block: 1rem;
+    padding-block: 1.1rem;
     border-block: 1px solid var(--line);
     background: rgba(198, 164, 108, 0.02);
 }
@@ -786,7 +862,7 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
 .marquee-track {
     display: flex;
     width: max-content;
-    animation: marquee 38s linear infinite;
+    animation: marquee 40s linear infinite;
 }
 
 .marquee:hover .marquee-track { animation-play-state: paused; }
@@ -812,7 +888,7 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     to { transform: translateX(-50%); }
 }
 
-/* ---------- Tags ---------- */
+/* ---------- Tags & Badges ---------- */
 .tag-row {
     display: flex;
     flex-wrap: wrap;
@@ -828,12 +904,12 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     border-radius: 999px;
     padding: 0.25rem 0.75rem;
     color: var(--text-soft);
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.025);
     font-family: var(--font-mono);
     font-size: 0.7rem;
     font-weight: 500;
     letter-spacing: 0.03em;
-    transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+    transition: all 0.22s ease;
 }
 
 .tag:hover {
@@ -845,23 +921,23 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
 /* ---------- Timeline ---------- */
 .timeline {
     position: relative;
-    padding-left: 2.2rem;
-    margin-top: 1.25rem;
+    padding-left: 2.3rem;
+    margin-top: 1.4rem;
 }
 
 .timeline::before {
     content: "";
     position: absolute;
-    left: 8px;
-    top: 14px;
-    bottom: 18px;
+    left: 9px;
+    top: 16px;
+    bottom: 20px;
     width: 1px;
-    background: linear-gradient(180deg, var(--gold), rgba(198, 164, 108, 0.08));
+    background: linear-gradient(180deg, var(--gold-bright) 0%, rgba(198, 164, 108, 0.15) 90%, transparent 100%);
 }
 
 .timeline-item {
     position: relative;
-    margin-bottom: 1.4rem;
+    margin-bottom: 1.6rem;
     animation: riseIn 0.55s ease both;
 }
 
@@ -869,35 +945,44 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
 .timeline-item:nth-child(3) { animation-delay: 0.12s; }
 .timeline-item:nth-child(4) { animation-delay: 0.18s; }
 .timeline-item:nth-child(5) { animation-delay: 0.24s; }
+.timeline-item:nth-child(6) { animation-delay: 0.30s; }
+.timeline-item:nth-child(7) { animation-delay: 0.36s; }
 
 .timeline-marker {
     position: absolute;
-    left: -29px;
-    top: 1.75rem;
-    width: 9px;
-    height: 9px;
-    border: 1px solid var(--gold);
+    left: -31px;
+    top: 1.85rem;
+    width: 11px;
+    height: 11px;
+    border: 1.5px solid var(--gold-bright);
     background: var(--bg);
     transform: rotate(45deg);
+    box-shadow: 0 0 8px rgba(198, 164, 108, 0.4);
+    transition: all 0.25s ease;
 }
 
-.timeline-card { padding: 1.5rem 1.6rem 1.4rem; }
+.timeline-item:hover .timeline-marker {
+    background: var(--gold-bright);
+    transform: rotate(45deg) scale(1.2);
+}
+
+.timeline-card { padding: 1.6rem 1.7rem 1.5rem; }
 
 .timeline-head {
     display: flex;
     align-items: center;
-    gap: 1.1rem;
+    gap: 1.15rem;
     flex-wrap: wrap;
 }
 
 .timeline-logo {
-    width: 52px;
-    height: 52px;
+    width: 54px;
+    height: 54px;
     flex-shrink: 0;
     object-fit: contain;
-    padding: 4px;
+    padding: 5px;
     border: 1px solid var(--line);
-    background: #141210;
+    background: #151310;
     border-radius: var(--radius);
 }
 
@@ -907,14 +992,14 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     justify-content: center;
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     color: var(--gold-bright);
     background: var(--gold-dim);
 }
 
 .timeline-title {
     flex: 1;
-    min-width: 180px;
+    min-width: 190px;
 }
 
 .timeline-title h3 {
@@ -927,7 +1012,7 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
 .date-pill {
     display: inline-flex;
     align-items: center;
-    padding: 0.3rem 0.75rem;
+    padding: 0.32rem 0.8rem;
     border: 1px solid var(--line);
     border-radius: 999px;
     color: var(--gold-bright);
@@ -940,24 +1025,24 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
 }
 
 .timeline-card .summary {
-    margin: 0.95rem 0 0.4rem;
+    margin: 1rem 0 0.45rem;
     color: var(--muted);
     line-height: 1.65;
     font-size: 0.98rem;
 }
 
 .timeline-bullets {
-    margin: 0.4rem 0 0.2rem;
+    margin: 0.45rem 0 0.2rem;
     padding: 0;
     list-style: none;
 }
 
 .timeline-bullets li {
     position: relative;
-    padding-left: 1.2rem;
-    margin: 0.45rem 0;
+    padding-left: 1.25rem;
+    margin: 0.5rem 0;
     color: var(--text-soft);
-    line-height: 1.62;
+    line-height: 1.64;
     font-size: 0.95rem;
 }
 
@@ -973,16 +1058,16 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
 
 .timeline-card .tag-row { margin-bottom: 0; }
 
-/* ---------- Skill cards ---------- */
+/* ---------- Skill Cards ---------- */
 .skill-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.1rem;
-    margin-top: 1.25rem;
+    gap: 1.2rem;
+    margin-top: 1.3rem;
 }
 
 .skill-card {
-    padding: 1.6rem 1.5rem 1.45rem;
+    padding: 1.7rem 1.6rem 1.5rem;
     animation: riseIn 0.55s ease both;
     display: flex;
     flex-direction: column;
@@ -994,38 +1079,100 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
 
 .skill-index {
     display: block;
-    margin-bottom: 1.35rem;
+    margin-bottom: 1.3rem;
     color: var(--gold);
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.16em;
 }
 
 .skill-card h3 {
     margin: 0 0 0.45rem;
-    font-size: 1.6rem;
+    font-size: 1.65rem;
 }
 
 .skill-card p {
-    margin: 0 0 0.95rem;
+    margin: 0 0 1rem;
     color: var(--muted);
     font-size: 0.95rem;
-    line-height: 1.6;
+    line-height: 1.62;
 }
 
 .skill-card .tag-row { margin-bottom: 0; }
+
+/* ---------- Testimonials Section ---------- */
+.testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.2rem;
+    margin-top: 1.3rem;
+}
+
+.testimonial-card {
+    padding: 1.8rem 1.7rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.testimonial-quote {
+    font-family: var(--font-display);
+    font-size: 1.22rem;
+    line-height: 1.55;
+    font-style: italic;
+    color: var(--text-soft);
+    margin: 0 0 1.2rem;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    border-top: 1px solid var(--line);
+    padding-top: 0.9rem;
+}
+
+.testimonial-author-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold-bright);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.testimonial-author-info h4 {
+    margin: 0 0 0.15rem;
+    font-size: 1.15rem;
+    color: var(--text);
+}
+
+.testimonial-author-info p {
+    margin: 0;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
 
 /* ---------- Education ---------- */
 .edu-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.2rem;
-    margin-top: 1.25rem;
+    gap: 1.3rem;
+    margin-top: 1.3rem;
 }
 
 .edu-card {
-    padding: 1.4rem;
+    padding: 1.6rem;
     animation: riseIn 0.55s ease both;
     display: flex;
     flex-direction: column;
@@ -1035,31 +1182,31 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
 
 .edu-logo {
     width: 100%;
-    height: 150px;
+    height: 155px;
     object-fit: contain;
     background: #ffffff;
-    padding: 14px 18px;
+    padding: 14px 20px;
     border: 1px solid var(--line);
-    margin-bottom: 1.2rem;
+    margin-bottom: 1.3rem;
     border-radius: var(--radius);
 }
 
 .edu-card h3 {
     margin: 0.45rem 0 0.35rem;
-    font-size: 1.65rem;
+    font-size: 1.68rem;
 }
 
 .edu-card p {
     margin: 0 0 0.85rem;
     color: var(--muted);
     font-size: 0.96rem;
-    line-height: 1.55;
+    line-height: 1.58;
 }
 
 .edu-school {
     display: block;
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: 1.22rem;
     font-weight: 500;
     font-style: italic;
     color: var(--gold-bright);
@@ -1070,42 +1217,42 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
 .coursework-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-top: 1.2rem;
+    gap: 1.1rem;
+    margin-top: 1.3rem;
 }
 
 .coursework-card {
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 1.2rem;
+    padding: 1.3rem;
     background: var(--surface);
 }
 
 .coursework-card h4 {
-    margin: 0 0 0.7rem;
-    font-size: 1.15rem;
+    margin: 0 0 0.75rem;
+    font-size: 1.18rem;
     color: var(--gold-bright);
 }
 
 .coursework-card ul {
     margin: 0;
-    padding-left: 1.1rem;
+    padding-left: 1.15rem;
     list-style: square;
     color: var(--muted);
     font-size: 0.88rem;
-    line-height: 1.6;
+    line-height: 1.65;
 }
 
-/* ---------- Contact / résumé ---------- */
+/* ---------- Contact / Résumé ---------- */
 .letter-card,
 .resume-panel {
-    padding: 2rem 2rem 1.8rem;
+    padding: 2.2rem 2.2rem 2rem;
 }
 
 .letter-email {
-    margin: 0.45rem 0 0.85rem;
+    margin: 0.5rem 0 0.9rem;
     font-family: var(--font-display);
-    font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+    font-size: clamp(1.8rem, 3.4vw, 2.6rem);
     font-weight: 500;
     line-height: 1.15;
 }
@@ -1122,19 +1269,20 @@ div[data-testid="stForm"] {
     border: 1px solid var(--line) !important;
     border-radius: var(--radius) !important;
     background: var(--surface) !important;
-    padding: 1.8rem !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3) !important;
+    padding: 2rem !important;
+    box-shadow: var(--shadow-lg) !important;
 }
 
 div[data-testid="stTextInput"] input,
 div[data-testid="stTextArea"] textarea {
-    background: #0e0c0a !important;
+    background: #0d0b09 !important;
     border: 1px solid var(--line-strong) !important;
     border-radius: var(--radius) !important;
     color: #ffffff !important;
     font-family: var(--font-body) !important;
     font-size: 0.95rem !important;
-    padding: 0.7rem 0.9rem !important;
+    padding: 0.75rem 0.95rem !important;
+    transition: all 0.2s ease !important;
 }
 
 div[data-testid="stTextInput"] input::placeholder,
@@ -1168,19 +1316,19 @@ div[data-testid="stTextArea"] label p {
     justify-content: space-between;
     align-items: center;
     gap: 0.8rem 1.4rem;
-    margin-top: 4rem;
-    padding-top: 1.4rem;
+    margin-top: 4.5rem;
+    padding-top: 1.6rem;
     border-top: 1px solid var(--line);
     color: var(--muted);
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
 }
 
 .site-footer-links {
     display: flex;
-    gap: 1.4rem;
+    gap: 1.5rem;
 }
 
 .site-footer-links a {
@@ -1191,10 +1339,10 @@ div[data-testid="stTextArea"] label p {
     color: var(--gold-bright);
 }
 
-/* ---------- Motion ---------- */
+/* ---------- Motion Keyframes ---------- */
 @keyframes riseIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: none; }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ---------- Divider ---------- */
@@ -1204,15 +1352,15 @@ hr {
     height: 1px !important;
     border: none !important;
     background: var(--line) !important;
-    margin: 1.5rem 0 !important;
+    margin: 1.6rem 0 !important;
 }
 
-/* ---------- Images / alerts / misc ---------- */
+/* ---------- Images & Visual Details ---------- */
 [data-testid="stImage"] img {
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-    filter: saturate(0.92) contrast(1.02);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+    filter: saturate(0.95) contrast(1.02);
 }
 
 .stCaption,
@@ -1226,41 +1374,44 @@ hr {
 }
 
 ::selection {
-    background: rgba(198, 164, 108, 0.35);
+    background: rgba(198, 164, 108, 0.38);
     color: #fffaf0;
 }
 
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
 ::-webkit-scrollbar-thumb {
     border: 2px solid var(--bg);
     background: rgba(198, 164, 108, 0.35);
     border-radius: 4px;
 }
 
-/* ---------- Responsive ---------- */
-@media screen and (max-width: 900px) {
-    section[data-testid="stSidebar"] { width: 250px !important; }
-    section[data-testid="stSidebar"] > div { width: 250px !important; }
-    .block-container { padding: 2.6rem 1.3rem 4rem; }
+/* ---------- Responsive Breakpoints ---------- */
+@media screen and (max-width: 990px) {
+    section[data-testid="stSidebar"] { width: 260px !important; }
+    section[data-testid="stSidebar"] > div { width: 260px !important; }
+    .block-container { padding: 2.8rem 1.5rem 4rem; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
     .mini-grid,
     .skill-grid,
-    .stat-grid,
-    .coursework-grid { grid-template-columns: 1fr; }
+    .coursework-grid,
+    .testimonial-grid,
+    .pillars-grid { grid-template-columns: 1fr; }
     .edu-grid { grid-template-columns: 1fr; }
 }
 
 @media screen and (max-width: 640px) {
-    section[data-testid="stSidebar"] { width: 220px !important; }
-    section[data-testid="stSidebar"] > div { width: 220px !important; padding-inline: 1rem; }
-    .block-container { padding: 2rem 1rem 3.2rem; }
+    section[data-testid="stSidebar"] { width: 230px !important; }
+    section[data-testid="stSidebar"] > div { width: 230px !important; padding-inline: 1rem; }
+    .block-container { padding: 2rem 1rem 3.5rem; }
     h1, .stMarkdown h1 { font-size: 2.4rem; }
     .section-description { font-size: 0.98rem; }
+    .stat-grid { grid-template-columns: 1fr; }
     .hero-actions { flex-direction: column; }
     .hero-actions .btn { width: 100%; }
-    .timeline { padding-left: 1.6rem; }
-    .timeline-marker { left: -24px; }
-    .site-footer { flex-direction: column; gap: 0.6rem; align-items: flex-start; }
+    .timeline { padding-left: 1.7rem; }
+    .timeline-marker { left: -25px; }
+    .site-footer { flex-direction: column; gap: 0.7rem; align-items: flex-start; }
 }
 
 @media (prefers-reduced-motion: reduce) {
