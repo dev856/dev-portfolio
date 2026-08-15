@@ -159,14 +159,23 @@ def tag_html(items: list[str]) -> str:
     return " ".join(f'<span class="tag">{safe(item)}</span>' for item in items)
 
 
+# Safe navigation state handler to avoid widget modification exception
+if "target_nav" in st.session_state and st.session_state.target_nav:
+    st.session_state.nav = st.session_state.target_nav
+    st.session_state.target_nav = None
+
+if "nav" not in st.session_state or st.session_state.nav not in NAV_ITEMS:
+    st.session_state.nav = "Overview"
+
+
 def set_page(name: str) -> None:
-    """Helper to update navigation session state seamlessly."""
+    """Helper to trigger navigation safely without widget instantiation conflict."""
     for item in NAV_ITEMS:
         if name.lower() in item.lower():
-            st.session_state.nav = item
+            st.session_state.target_nav = item
             st.rerun()
             return
-    st.session_state.nav = name
+    st.session_state.target_nav = name
     st.rerun()
 
 
@@ -272,11 +281,7 @@ if not resume_path.exists():
 profile_uri = as_data_uri(profile_path)
 resume_uri = as_data_uri(resume_path)
 
-# Initialize navigation session state
-if "nav" not in st.session_state or st.session_state.nav not in NAV_ITEMS:
-    st.session_state.nav = "Overview"
-
-# Sidebar Branded Navigation
+# Sidebar Branded Navigation with Vector Icons
 with st.sidebar:
     if profile_uri:
         st.markdown(
@@ -540,7 +545,7 @@ elif page == "About":
         with st.container(border=True):
             st.markdown("### Engineering Philosophy")
             st.markdown(
-                f"""
+                """
                 - **Data-Driven Precision:** Every architectural and modeling decision is validated through empirical metrics, baseline comparisons, and rigorous cross-validation.
                 - **Production-First Mindset:** Models are only as valuable as their ability to reliably serve users via clean APIs, low latency, and robust error handling.
                 - **Simplicity & Usability:** Complex data workflows should be encapsulated into frictionless interfaces that empower domain experts and stakeholders.
@@ -629,7 +634,7 @@ elif page == "Projects":
                     "An interactive NLP application that transforms raw unstructured text or uploaded CSV documents into explorable semantic topic models using Latent Dirichlet Allocation (LDA) and NLTK tokenization."
                 )
                 st.markdown(
-                    f"<strong>Key Outcome:</strong> Real-time semantic topic distribution &amp; token extraction<br><strong>Contribution:</strong> End-to-end NLP pipeline, LDA modeling, and responsive Streamlit UI",
+                    "<strong>Key Outcome:</strong> Real-time semantic topic distribution &amp; token extraction<br><strong>Contribution:</strong> End-to-end NLP pipeline, LDA modeling, and responsive Streamlit UI",
                     unsafe_allow_html=True,
                 )
                 tag_row(["Python", "Streamlit", "NLTK", "Gensim", "Pandas", "Topic Modeling", "LDA"])
