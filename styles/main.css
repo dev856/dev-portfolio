@@ -22,7 +22,7 @@
     --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6);
-    --shadow-accent: 0 0 32px rgba(59, 130, 246, 0.18);
+    --shadow-accent: 0 0 32px rgba(59, 130, 246, 0.2);
     --radius-sm: 6px;
     --radius: 10px;
     --radius-lg: 16px;
@@ -190,7 +190,7 @@ section[data-testid="stSidebar"] small {
     line-height: 1.5;
 }
 
-/* Sidebar Radio Navigation (Dock Style with Icons) */
+/* Sidebar Radio Navigation */
 section[data-testid="stSidebar"] [data-testid="stRadio"] > label,
 section[data-testid="stSidebar"] [data-testid="stRadio"] [data-testid="stWidgetLabel"] {
     display: none !important;
@@ -201,6 +201,7 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] {
 }
 
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] {
+    counter-reset: nav;
     gap: 0.25rem;
     display: flex;
     flex-direction: column;
@@ -211,7 +212,7 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] 
     min-height: 42px;
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.75rem;
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
     padding: 0.5rem 0.85rem;
@@ -225,6 +226,18 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] 
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label::before {
+    counter-increment: nav;
+    content: counter(nav, decimal-leading-zero);
+    color: #475569;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    min-width: 1.3rem;
+    transition: color 0.2s ease;
+}
+
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label > div:first-child {
     display: none !important;
 }
@@ -234,9 +247,6 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] 
     color: inherit;
     font-size: inherit;
     font-weight: inherit;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
 }
 
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label:hover {
@@ -246,12 +256,20 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] 
     transform: translateX(2px);
 }
 
+section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label:hover::before {
+    color: var(--accent-bright);
+}
+
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) {
     color: #ffffff !important;
     border-color: rgba(59, 130, 246, 0.45);
     background: linear-gradient(90deg, rgba(59, 130, 246, 0.22) 0%, rgba(59, 130, 246, 0.05) 100%);
     font-weight: 600;
     box-shadow: inset 0 0 14px rgba(59, 130, 246, 0.10);
+}
+
+section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked)::before {
+    color: var(--accent-bright);
 }
 
 section[data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked)::after {
@@ -366,7 +384,7 @@ em.serif-accent,
 .section-kicker {
     display: inline-flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.55rem;
     margin: 0 0 0.8rem;
     color: var(--accent-bright);
     font-family: var(--font-mono);
@@ -376,12 +394,8 @@ em.serif-accent,
     text-transform: uppercase;
 }
 
-.section-kicker::before {
-    content: "";
-    width: 18px;
-    height: 2px;
-    background: var(--accent);
-    border-radius: 1px;
+.section-kicker svg {
+    color: var(--accent-bright);
 }
 
 .section-description {
@@ -395,12 +409,15 @@ em.serif-accent,
 
 .company,
 .project-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     margin: -0.2rem 0 0.7rem;
     color: var(--accent-bright);
     font-family: var(--font-mono);
     font-size: 0.74rem;
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
@@ -409,6 +426,9 @@ em.serif-accent,
     color: var(--muted);
     line-height: 1.6;
     font-size: 0.94rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
 }
 
 .project-outcome strong { color: var(--text-soft); font-weight: 600; }
@@ -430,6 +450,69 @@ a {
 a:hover {
     color: #ffffff;
     border-bottom-color: var(--accent-bright);
+}
+
+/* ---------- Premium Vector Icon Boxes & Chips ---------- */
+.icon-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(37, 99, 235, 0.05) 100%);
+    border: 1px solid var(--line-strong);
+    color: var(--accent-bright);
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.2);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    flex-shrink: 0;
+}
+
+.icon-box.sm {
+    width: 32px;
+    height: 32px;
+}
+
+.icon-box:hover {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.28) 0%, rgba(59, 130, 246, 0.12) 100%);
+    border-color: var(--accent-bright);
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+}
+
+.svg-icon {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+.pill-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.24rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: var(--accent-bright);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.bullet-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.18);
+    color: var(--accent-bright);
+    margin-right: 0.5rem;
+    vertical-align: middle;
 }
 
 /* ---------- Swiss Minimalist Cards Chrome ---------- */
@@ -538,6 +621,7 @@ a:hover {
 .portrait-caption {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     gap: 1rem;
     margin-top: 0.7rem;
     padding-top: 0.6rem;
@@ -660,7 +744,7 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     outline-offset: 2px;
 }
 
-/* ---------- Stat Cards Grid with Icons ---------- */
+/* ---------- Stat Cards Grid with Vector Icons ---------- */
 .stat-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -687,18 +771,6 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     letter-spacing: 0.14em;
 }
 
-.stat-badge-icon {
-    font-size: 1.3rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-sm);
-    background: var(--accent-dim);
-    border: 1px solid var(--line);
-}
-
 .stat-value {
     margin: 0;
     font-family: var(--font-display);
@@ -719,7 +791,7 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     text-transform: uppercase;
 }
 
-/* ---------- Selected Work Mini Cards with Icons ---------- */
+/* ---------- Selected Work Mini Cards with Vector Icons ---------- */
 .mini-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -749,22 +821,6 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     letter-spacing: 0.14em;
 }
 
-.mini-icon-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.22rem 0.6rem;
-    border-radius: 999px;
-    background: var(--accent-dim);
-    border: 1px solid var(--line-strong);
-    color: var(--accent-bright);
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
 .mini-card h3 {
     margin: 0 0 0.4rem;
     font-size: 1.42rem;
@@ -777,7 +833,7 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     line-height: 1.6;
 }
 
-/* ---------- Highlights / Pillars with Icons ---------- */
+/* ---------- Highlights / Pillars with Vector Icons ---------- */
 .pillars-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -798,19 +854,8 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     transform: translateY(-2px);
 }
 
-.pillar-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-sm);
-    background: var(--accent-dim);
-    border: 1px solid var(--line-strong);
-    color: var(--accent-bright);
-    margin-bottom: 0.9rem;
-    font-size: 1.35rem;
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.15);
+.pillar-card .icon-box {
+    margin-bottom: 1rem;
 }
 
 .pillar-card h4 {
@@ -981,8 +1026,8 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
 
 .timeline-title { flex: 1; min-width: 200px; }
 .timeline-title h3 { margin: 0 0 0.15rem; font-size: 1.25rem; }
-.timeline-bullets { margin: 0.8rem 0; padding-left: 1.2rem; color: var(--text-soft); }
-.timeline-bullets li { margin-bottom: 0.45rem; line-height: 1.6; font-size: 0.93rem; }
+.timeline-bullets { margin: 0.8rem 0; padding-left: 0.2rem; list-style: none; color: var(--text-soft); }
+.timeline-bullets li { margin-bottom: 0.45rem; line-height: 1.6; font-size: 0.93rem; display: flex; align-items: flex-start; gap: 0.4rem; }
 
 /* ---------- Skills Grid ---------- */
 .skill-grid {
@@ -999,14 +1044,19 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     justify-content: space-between;
 }
 
+.skill-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.9rem;
+}
+
 .skill-index {
     color: var(--accent-bright);
     font-family: var(--font-mono);
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.14em;
-    margin-bottom: 0.8rem;
-    display: block;
 }
 
 .skill-card h3 { margin: 0 0 0.4rem; font-size: 1.38rem; }
@@ -1063,7 +1113,15 @@ div[data-testid="stFormSubmitButton"] button:focus-visible {
     background: var(--surface);
 }
 
-.coursework-card h4 { margin: 0 0 0.7rem; font-size: 1.15rem; color: var(--accent-bright); }
+.coursework-card h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.7rem;
+    font-size: 1.15rem;
+    color: var(--accent-bright);
+}
+
 .coursework-card ul { margin: 0; padding-left: 1.15rem; list-style: square; color: var(--muted); font-size: 0.88rem; line-height: 1.65; }
 
 /* ---------- Testimonials ---------- */
