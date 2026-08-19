@@ -335,7 +335,7 @@ if page == "Overview":
         f"""
         <div class="hero">
           <p class="section-kicker">{svg_icon('zap', 14)} Software &amp; Applied Machine Learning</p>
-          <h1>I build <span class="blue-accent">intelligent software</span> from data, models &amp; modern web systems.</h1>
+          <h1>I build <span class="gold-accent">intelligent software</span> from data, models &amp; modern web systems.</h1>
           <p class="section-description">Master of Engineering graduate in Electrical &amp; Computer Engineering (Data Science Specialization) at Carleton University. Experienced across production REST APIs, computer vision, natural language processing, and interactive data workbenches.</p>
         </div>
         """,
