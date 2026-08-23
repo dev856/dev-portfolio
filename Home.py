@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 ROOT = Path(__file__).resolve().parent
 EMAIL = "devhkotak@gmail.com"
@@ -65,6 +66,22 @@ SVG_ICONS = {
     "zap": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
     "activity": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
     "book": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>',
+    "rocket": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>',
+    "lightbulb": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>',
+    "users": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    "quote": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/></svg>',
+    "globe": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>',
+    "download": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
+    "atom": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"/><path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"/></svg>',
+    "workflow": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="8" x="3" y="3" rx="2"/><path d="M7 11v4a2 2 0 0 0 2 2h4"/><rect width="8" height="8" x="13" y="13" rx="2"/></svg>',
+    "satellite_dish": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10a7.31 7.31 0 0 0 10 10z"/><path d="m9 15 3-3"/><path d="M17 13a6 6 0 0 0-6-6"/><path d="M21 13A10 10 0 0 0 11 3"/><rect x="13" y="15" width="6" height="6" rx="2" transform="rotate(45 16 18)"/></svg>',
+    "flask_conical": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></svg>',
+    "gauge": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>',
+    "shield_check": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>',
+    "trending_up": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+    "git_branch": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>',
+    "cloud": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>',
+    "medal": '<svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" width="{s}" height="{s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2"/><path d="m13 12 5.88-9.8"/><path d="M8 7h8"/><circle cx="12" cy="17" r="5"/><path d="M12 18v-2h-.5"/></svg>',
 }
 
 
@@ -157,6 +174,43 @@ def tag_row(items: list[str]) -> None:
 
 def tag_html(items: list[str]) -> str:
     return " ".join(f'<span class="tag">{safe(item)}</span>' for item in items)
+
+
+def render_gif_strip() -> None:
+    """Render animated demo GIFs dropped into images/gifs/ as an 'in motion' gallery."""
+    gif_dir = ROOT / "images" / "gifs"
+    if not gif_dir.exists():
+        return
+    gifs = sorted(p for p in gif_dir.iterdir() if p.suffix.lower() in {".gif", ".webp"})
+    if not gifs:
+        return
+    frames = "".join(
+        f'<figure class="gif-frame"><img src="{as_data_uri(p)}" alt="{safe(p.stem)}" loading="lazy" />'
+        f"<figcaption>{svg_icon('sparkles', 12)} {safe(p.stem.replace('-', ' ').replace('_', ' '))}</figcaption></figure>"
+        for p in gifs
+    )
+    st.markdown("## Studio in Motion")
+    st.markdown('<div class="gif-strip">' + frames + "</div>", unsafe_allow_html=True)
+
+
+def terminal_widget() -> None:
+    """Animated live-console card with typing command, status log, and equalizer."""
+    cmd = "python run dev_kotak --mode=production"
+    eq_bars = "".join("<span></span>" for _ in range(14))
+    st.markdown(
+        f"""
+        <div class="terminal-card">
+          <div class="terminal-bar">
+            <span class="tdot r"></span><span class="tdot y"></span><span class="tdot g"></span>
+            <span class="terminal-title">{svg_icon('terminal', 12)} dev@portfolio: ~/engine</span>
+            <span class="terminal-live"><span class="livedot"></span>LIVE</span>
+          </div>
+          <pre class="terminal-body"><span class="tline"><span class="tprompt">$</span> <span class="typing">{cmd}</span></span><span class="tline"><span class="tok-ok">[ok]</span> models compiled · vision · nlp · ensembles</span><span class="tline"><span class="tok-info">[info]</span> serving interactive experience <span class="cursor">▊</span></span></pre>
+          <div class="terminal-eq">{eq_bars}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # Safe navigation state handler to avoid widget modification exception
@@ -272,6 +326,14 @@ css_file = ROOT / "styles" / "main.css"
 if css_file.exists():
     st.markdown(f"<style>{css_file.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
+# Inject Interactive Layer (cursor spotlight + scroll reveal)
+js_file = ROOT / "styles" / "interactive.js"
+if js_file.exists():
+    components.html(
+        f"<script>{js_file.read_text(encoding='utf-8')}</script>",
+        height=0,
+    )
+
 # Prepare Assets
 profile_path = ROOT / "assets" / "phot.jpeg"
 resume_path = ROOT / "Resume-Dev.pdf"
@@ -334,7 +396,8 @@ if page == "Overview":
     st.markdown(
         f"""
         <div class="hero">
-          <p class="section-kicker">{svg_icon('zap', 14)} Software &amp; Applied Machine Learning</p>
+          <div class="hero-particles"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <p class="section-kicker">{svg_icon('rocket', 14)} Software &amp; Applied Machine Learning</p>
           <h1>I build <span class="gold-accent">intelligent software</span> from data, models &amp; modern web systems.</h1>
           <p class="section-description">Master of Engineering graduate in Electrical &amp; Computer Engineering (Data Science Specialization) at Carleton University. Experienced across production REST APIs, computer vision, natural language processing, and interactive data workbenches.</p>
         </div>
@@ -429,6 +492,9 @@ if page == "Overview":
         unsafe_allow_html=True,
     )
 
+    # Live animated console widget
+    terminal_widget()
+
     st.markdown('<span id="selected-work"></span>', unsafe_allow_html=True)
     st.write("")
     st.markdown("## Core Engineering Pillars")
@@ -500,6 +566,8 @@ if page == "Overview":
     if st.button("Explore All Projects & Applications →", type="primary", key="overview_all_projects_btn"):
         set_page("Projects")
 
+    render_gif_strip()
+
     st.markdown(
         """
         <div class="marquee"><div class="marquee-track">
@@ -530,7 +598,7 @@ elif page == "About":
 
     with about_col1:
         with st.container(border=True):
-            st.markdown("### Professional Narrative")
+            st.markdown(f'<h3 class="h3-icon">{svg_icon("users", 19)} Professional Narrative</h3>', unsafe_allow_html=True)
             st.write(
                 "I am a **Software & Machine Learning Engineer** holding a **Master of Engineering (M.Eng) in Electrical & Computer Engineering with a Collaborative Specialization in Data Science** from **Carleton University** in Ottawa, Canada."
             )
@@ -543,7 +611,7 @@ elif page == "About":
 
     with about_col2:
         with st.container(border=True):
-            st.markdown("### Engineering Philosophy")
+            st.markdown(f'<h3 class="h3-icon">{svg_icon("lightbulb", 19)} Engineering Philosophy</h3>', unsafe_allow_html=True)
             st.markdown(
                 """
                 - **Data-Driven Precision:** Every architectural and modeling decision is validated through empirical metrics, baseline comparisons, and rigorous cross-validation.
@@ -908,7 +976,7 @@ elif page == "Skills":
     meth_left, meth_right = st.columns(2)
     with meth_left:
         with st.container(border=True):
-            st.markdown(f"{icon_box('cpu', 18, sm=True)} &nbsp; **Applied Machine Learning & Evaluation**", unsafe_allow_html=True)
+            st.markdown(f'{icon_box("atom", 18, sm=True)} &nbsp; **Applied Machine Learning & Evaluation**', unsafe_allow_html=True)
             st.write(
                 "Experience selecting appropriate model architectures (tree ensembles, neural networks, linear meta-models), conducting stratified cross-validation, and optimizing metrics beyond basic accuracy (precision, recall, ROC-AUC, F1-score)."
             )
@@ -916,7 +984,7 @@ elif page == "Skills":
 
     with meth_right:
         with st.container(border=True):
-            st.markdown(f"{icon_box('database', 18, sm=True)} &nbsp; **Systems Integration & API Design**", unsafe_allow_html=True)
+            st.markdown(f'{icon_box("workflow", 18, sm=True)} &nbsp; **Systems Integration & API Design**', unsafe_allow_html=True)
             st.write(
                 "Experience connecting disparate software systems via structured RESTful APIs, designing deterministic JSON schema contracts, and automating repetitive data synchronization tasks with high reliability."
             )
@@ -974,7 +1042,7 @@ elif page == "Education":
     )
 
     st.write("")
-    st.markdown("### Academic Coursework")
+    st.markdown(f'<h3 class="h3-icon">{svg_icon("graduation", 19)} Academic Coursework</h3>', unsafe_allow_html=True)
     st.markdown(
         f"""
         <div class="coursework-grid">
@@ -1045,6 +1113,7 @@ elif page == "Testimonials":
         """
         <div class="testimonial-grid">
           <div class="testimonial-card">
+            <span class="quote-mark">{svg_icon('quote', 30)}</span>
             <p class="testimonial-quote">"Dev brings a remarkable blend of machine learning theory and practical software engineering. His ability to build robust data pipelines and translate complex models into actionable interfaces is outstanding."</p>
             <div class="testimonial-author">
               <div class="testimonial-author-avatar">RE</div>
@@ -1055,6 +1124,7 @@ elif page == "Testimonials":
             </div>
           </div>
           <div class="testimonial-card">
+            <span class="quote-mark">{svg_icon('quote', 30)}</span>
             <p class="testimonial-quote">"Dev consistently delivers clean, dependable, and high-performance backend and data integration solutions. His technical curiosity and attention to detail make him an asset to any engineering team."</p>
             <div class="testimonial-author">
               <div class="testimonial-author-avatar">TL</div>
@@ -1094,7 +1164,7 @@ elif page == "Résumé":
     st.markdown(
         f"""
         <div class="resume-panel">
-          <p class="section-kicker">{svg_icon('file_text', 14)} Curriculum Vitae</p>
+          <p class="section-kicker">{svg_icon('download', 14)} Curriculum Vitae</p>
           <h3>Dev Kotak · Current Résumé</h3>
           <p>Complete record of academic credentials, software &amp; machine learning appointments, technical skills, and selected projects.</p>
         </div>
@@ -1120,7 +1190,7 @@ elif page == "Résumé":
     summary_left, summary_right = st.columns(2)
     with summary_left:
         with st.container(border=True):
-            st.markdown("#### Key Qualifications")
+            st.markdown(f'{icon_box("award", 18, sm=True)} &nbsp; **Key Qualifications**', unsafe_allow_html=True)
             st.write(
                 "- **Graduate Degree:** M.Eng in Electrical & Computer Engineering with Data Science Specialization from Carleton University.\n"
                 "- **7 Appointments:** Experience across ISRO (Space Applications Centre), Ottawa Centre for Cognitive Therapy, Jupiter AI Labs, and Zummit Infolabs.\n"
@@ -1128,7 +1198,7 @@ elif page == "Résumé":
             )
     with summary_right:
         with st.container(border=True):
-            st.markdown("#### Primary Competencies")
+            st.markdown(f'{icon_box("target", 18, sm=True)} &nbsp; **Primary Competencies**', unsafe_allow_html=True)
             st.write(
                 "- **Applied Machine Learning:** Classification, Regression, Ensemble Stacking, Evaluation Metrics.\n"
                 "- **Computer Vision & NLP:** Pose estimation, Object Detection, Topic Modeling, Text Extraction.\n"
@@ -1152,7 +1222,7 @@ elif page == "Contact":
         <div class="letter-card">
           <p class="section-kicker">{svg_icon('mail', 14)} Direct Contact</p>
           <p class="letter-email"><a href="mailto:{EMAIL}">{EMAIL}</a></p>
-          <p>{svg_icon('map_pin', 14)} Open to software engineering, data science, and applied machine learning roles in Ottawa, across Canada, and remotely.</p>
+          <p>{svg_icon('globe', 14)} Open to software engineering, data science, and applied machine learning roles in Ottawa, across Canada, and remotely.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1168,7 +1238,7 @@ elif page == "Contact":
         st.link_button("GitHub Profile ↗", GITHUB, width="stretch")
 
     st.write("")
-    st.markdown("### Send a Direct Message")
+    st.markdown(f'<h3 class="h3-icon">{svg_icon("send", 19)} Send a Direct Message</h3>', unsafe_allow_html=True)
     with st.form("contact_form", clear_on_submit=True):
         f_left, f_right = st.columns(2)
         with f_left:
