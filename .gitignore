@@ -42,6 +42,8 @@ htmlcov/
 # Local render/debug artifacts
 render_*.png
 preview_*.png
+verify_shots/
+verify_theme.py
 *_dom.html
 _streamlit_test.py
 capture_previews.py

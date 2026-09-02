@@ -176,37 +176,116 @@ def tag_html(items: list[str]) -> str:
     return " ".join(f'<span class="tag">{safe(item)}</span>' for item in items)
 
 
+GIF_METADATA = {
+    "topic-modeling": {
+        "title": "Tone Topic · Semantic NLP",
+        "badge": "LDA Model",
+        "tech": "NLTK · Gensim · Streamlit",
+        "icon": "message",
+    },
+    "pose-estimation": {
+        "title": "Digital Yoga · Posture Vision",
+        "badge": "31 FPS Biomechanics",
+        "tech": "MediaPipe · OpenCV · Real-Time",
+        "icon": "eye",
+    },
+    "data-pulse": {
+        "title": "InsightSync · Data Workbench",
+        "badge": "Streaming EDA",
+        "tech": "Plotly · Pandas · Multi-Variate",
+        "icon": "activity",
+    },
+    "neural-network": {
+        "title": "Neural Stacking · Meta-Learner",
+        "badge": "75% Acc Benchmark",
+        "tech": "Scikit-Learn · Ensembles · K-Fold",
+        "icon": "cpu",
+    },
+    "fabric-scan": {
+        "title": "FabriSense · Anomaly Detection",
+        "badge": "Automated Vision",
+        "tech": "OpenCV · Defect Classification",
+        "icon": "shield_check",
+    },
+    "satellite-vision": {
+        "title": "ISRO · Satellite Hydrology",
+        "badge": "MODIS Discharge Model",
+        "tech": "Google Earth Engine · XGBoost · LSTM",
+        "icon": "satellite_dish",
+    },
+}
+
+
 def render_gif_strip() -> None:
-    """Render animated demo GIFs dropped into images/gifs/ as an 'in motion' gallery."""
+    """Render animated demo GIFs as an interactive glass 'Studio in Motion' gallery."""
     gif_dir = ROOT / "images" / "gifs"
     if not gif_dir.exists():
         return
     gifs = sorted(p for p in gif_dir.iterdir() if p.suffix.lower() in {".gif", ".webp"})
     if not gifs:
         return
-    frames = "".join(
-        f'<figure class="gif-frame"><img src="{as_data_uri(p)}" alt="{safe(p.stem)}" loading="lazy" />'
-        f"<figcaption>{svg_icon('sparkles', 12)} {safe(p.stem.replace('-', ' ').replace('_', ' '))}</figcaption></figure>"
-        for p in gifs
+    cards_html = []
+    for p in gifs:
+        stem = p.stem
+        meta = GIF_METADATA.get(stem, {
+            "title": stem.replace("-", " ").title(),
+            "badge": "Interactive Demo",
+            "tech": "Python · Machine Learning",
+            "icon": "sparkles",
+        })
+        uri = as_data_uri(p)
+        if not uri:
+            continue
+        cards_html.append(
+            f'<div class="gif-glass-card">'
+            f'<div class="gif-media-box">'
+            f'<img src="{uri}" alt="{safe(meta["title"])}" loading="lazy" />'
+            f'<span class="gif-live-pill"><span class="livedot"></span>{safe(meta["badge"])}</span>'
+            f'</div>'
+            f'<div class="gif-info">'
+            f'<div class="gif-title-row">'
+            f'<span class="gif-icon">{svg_icon(meta["icon"], 14)}</span>'
+            f'<h4>{safe(meta["title"])}</h4>'
+            f'</div>'
+            f'<p class="gif-tech-line">{safe(meta["tech"])}</p>'
+            f'</div>'
+            f'</div>'
+        )
+
+    st.markdown(
+        f"""
+        <div class="motion-header">
+          <div class="motion-title-group">
+            <p class="section-kicker">{svg_icon('sparkles', 13)} Interactive Visual Intelligence</p>
+            <h2 class="h2-icon">{svg_icon('zap', 20)} Studio in Motion</h2>
+          </div>
+          <span class="motion-badge">{svg_icon('activity', 12)} 6 Real-Time Machine Learning Demos</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    st.markdown("## Studio in Motion")
-    st.markdown('<div class="gif-strip">' + frames + "</div>", unsafe_allow_html=True)
+    st.markdown('<div class="gif-strip">' + "".join(cards_html) + "</div>", unsafe_allow_html=True)
 
 
 def terminal_widget() -> None:
-    """Animated live-console card with typing command, status log, and equalizer."""
-    cmd = "python run dev_kotak --mode=production"
-    eq_bars = "".join("<span></span>" for _ in range(14))
+    """Animated live-console glass card with typing command, status log, and visualizer."""
+    cmd = "python run dev_kotak --mode=production --accelerator=metal"
+    eq_bars = "".join("<span></span>" for _ in range(16))
     st.markdown(
         f"""
         <div class="terminal-card">
           <div class="terminal-bar">
-            <span class="tdot r"></span><span class="tdot y"></span><span class="tdot g"></span>
-            <span class="terminal-title">{svg_icon('terminal', 12)} dev@portfolio: ~/engine</span>
-            <span class="terminal-live"><span class="livedot"></span>LIVE</span>
+            <div class="terminal-dots">
+              <span class="tdot r"></span><span class="tdot y"></span><span class="tdot g"></span>
+            </div>
+            <span class="terminal-title">{svg_icon('terminal', 13)} dev@quantum-engine: ~/production/models</span>
+            <span class="terminal-live"><span class="livedot"></span>SYSTEM ONLINE</span>
           </div>
-          <pre class="terminal-body"><span class="tline"><span class="tprompt">$</span> <span class="typing">{cmd}</span></span><span class="tline"><span class="tok-ok">[ok]</span> models compiled · vision · nlp · ensembles</span><span class="tline"><span class="tok-info">[info]</span> serving interactive experience <span class="cursor">▊</span></span></pre>
-          <div class="terminal-eq">{eq_bars}</div>
+          <pre class="terminal-body"><span class="tline"><span class="tprompt">❯</span> <span class="typing">{cmd}</span></span><span class="tline"><span class="tok-ok">✔ [pipeline]</span> computer vision · transformers · ensemble stack initialized</span><span class="tline"><span class="tok-info">ℹ [runtime]</span> serving responsive glassmorphic interface at 60 FPS <span class="cursor">▊</span></span></pre>
+          <div class="terminal-footer">
+            <span class="terminal-meta">{svg_icon('cpu', 12)} Low Latency Inference &bull; Python &bull; Streamlit Core</span>
+            <div class="terminal-eq">{eq_bars}</div>
+          </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -247,10 +326,10 @@ def site_footer() -> None:
           <div>
             <span>{svg_icon("zap", 14)} <strong>Dev Kotak</strong></span> · <span>Software &amp; Machine Learning Engineer</span> · <span>{svg_icon("map_pin", 13)} {LOCATION}</span>
           </div>
-          <div class="site-footer-links">
-            <a href="{LINKEDIN}" target="_blank" rel="noreferrer">{svg_icon("linkedin", 13)} LinkedIn</a>
-            <a href="{GITHUB}" target="_blank" rel="noreferrer">{svg_icon("github", 13)} GitHub</a>
-            <a href="mailto:{EMAIL}">{svg_icon("mail", 13)} Email</a>
+          <div class="footer-social">
+            <a href="{LINKEDIN}" target="_blank" rel="noreferrer" title="LinkedIn">{svg_icon("linkedin", 17)}</a>
+            <a href="{GITHUB}" target="_blank" rel="noreferrer" title="GitHub">{svg_icon("github", 17)}</a>
+            <a href="mailto:{EMAIL}" title="Email">{svg_icon("mail", 17)}</a>
           </div>
         </footer>
         """,
@@ -263,9 +342,9 @@ def timeline_item(role: dict[str, object]) -> None:
     logo = role.get("logo")
     if logo and (ROOT / str(logo)).exists():
         uri = as_data_uri(ROOT / str(logo))
-        logo_html = f'<img class="timeline-logo" src="{uri}" alt="{safe(company)}" />' if uri else ""
+        logo_html = f'<div class="timeline-logo-box"><img class="timeline-logo" src="{uri}" alt="{safe(company)}" /></div>' if uri else ""
     else:
-        logo_html = f'<span class="timeline-logo timeline-logo-fallback">{initials(company)}</span>'
+        logo_html = f'<div class="timeline-logo-box"><span class="timeline-logo timeline-logo-fallback">{initials(company)}</span></div>'
     bullets = "".join(f"<li><span class=\"bullet-icon\">{svg_icon('check', 10)}</span> <span>{safe(b)}</span></li>" for b in role["bullets"])
     st.markdown(
         f"""
@@ -290,15 +369,55 @@ def timeline_item(role: dict[str, object]) -> None:
     )
 
 
+GIF_BY_PROJECT = {
+    "Tone Topic": "topic-modeling.gif",
+    "Digital Yoga Trainer": "pose-estimation.gif",
+    "InsightSync": "data-pulse.gif",
+    "Multi-label Dataset Prediction": "neural-network.gif",
+    "FabriSense": "fabric-scan.gif",
+    "Hydrological Basin Flux Estimator": "satellite-vision.gif",
+}
+
+
+def project_gif_uri(project: dict[str, object]) -> str | None:
+    """Return a data-URI for the matching animated demo GIF of a project."""
+    gif_name = GIF_BY_PROJECT.get(str(project.get("title")))
+    if not gif_name:
+        return None
+    path = ROOT / "images" / "gifs" / gif_name
+    return as_data_uri(path) if path.exists() else None
+
+
 def project_card(project: dict[str, object], image_path: str | None = None) -> None:
     with st.container(border=True):
-        if image_path and (ROOT / image_path).exists():
-            st.image(str(ROOT / image_path), width="stretch")
-        st.markdown(f'<p class="project-type">{safe(project["type"])}</p>', unsafe_allow_html=True)
+        gif_uri = project_gif_uri(project)
+        badge_text = project.get("badge", "Live Demo")
+        if gif_uri:
+            st.markdown(
+                f"""
+                <div class="card-gif">
+                  <img src="{gif_uri}" alt="{safe(project['title'])} animated demo" loading="lazy" />
+                  <span class="card-live-pill"><span class="livedot"></span>{safe(badge_text)}</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        elif image_path and (ROOT / image_path).exists():
+            img_uri = as_data_uri(ROOT / image_path)
+            if img_uri:
+                st.markdown(
+                    f"""
+                    <div class="card-gif">
+                      <img src="{img_uri}" alt="{safe(project['title'])}" loading="lazy" />
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+        st.markdown(f'<p class="project-type">{svg_icon("sparkles", 12)} {safe(project["type"])}</p>', unsafe_allow_html=True)
         st.subheader(str(project["title"]))
         st.write(str(project["description"]))
         st.markdown(
-            f'<p class="project-outcome"><span>{svg_icon("target", 15)}</span> <span><strong>{safe(project["outcome_label"])}:</strong> {safe(project["outcome"])}</span></p>',
+            f'<div class="project-outcome-box"><span class="outcome-icon">{svg_icon("target", 14)}</span> <span><strong>{safe(project["outcome_label"])}:</strong> {safe(project["outcome"])}</span></div>',
             unsafe_allow_html=True,
         )
         tag_row(project["tags"])
@@ -334,6 +453,9 @@ if js_file.exists():
         height=0,
     )
 
+# Aurora scroll progress bar (progressive enhancement; follows page scroll in modern browsers)
+st.markdown('<div class="scroll-progress"></div>', unsafe_allow_html=True)
+
 # Prepare Assets
 profile_path = ROOT / "assets" / "phot.jpeg"
 resume_path = ROOT / "Resume-Dev.pdf"
@@ -356,19 +478,29 @@ with st.sidebar:
               <h2 class="brand-name">Dev Kotak</h2>
               <p class="brand-role">Software &amp; Machine Learning Engineer</p>
               <div class="status-pill"><span class="status-dot"></span>Open to opportunities</div>
+              <div class="side-social">
+                <a href="{LINKEDIN}" target="_blank" rel="noreferrer" title="LinkedIn">{svg_icon("linkedin", 15)}</a>
+                <a href="{GITHUB}" target="_blank" rel="noreferrer" title="GitHub">{svg_icon("github", 15)}</a>
+                <a href="mailto:{EMAIL}" title="Email">{svg_icon("mail", 15)}</a>
+              </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
     else:
         st.markdown(
-            """
+            f"""
             <div class="brand">
               <div class="monogram">DK</div>
               <p class="brand-kicker">Studio · Portfolio</p>
               <h2 class="brand-name">Dev Kotak</h2>
               <p class="brand-role">Software &amp; Machine Learning Engineer</p>
               <div class="status-pill"><span class="status-dot"></span>Open to opportunities</div>
+              <div class="side-social">
+                <a href="{LINKEDIN}" target="_blank" rel="noreferrer" title="LinkedIn">{svg_icon("linkedin", 15)}</a>
+                <a href="{GITHUB}" target="_blank" rel="noreferrer" title="GitHub">{svg_icon("github", 15)}</a>
+                <a href="mailto:{EMAIL}" title="Email">{svg_icon("mail", 15)}</a>
+              </div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -376,9 +508,6 @@ with st.sidebar:
     st.divider()
     page = st.radio("Navigation", NAV_ITEMS, label_visibility="collapsed", key="nav")
     st.divider()
-    st.caption("Available for Software Engineering, Applied Machine Learning, and Data Science appointments.")
-    st.link_button("LinkedIn Profile ↗", LINKEDIN, width="stretch")
-    st.link_button("GitHub Profile ↗", GITHUB, width="stretch")
     if resume_path.exists():
         st.download_button(
             "Download Résumé PDF ⤓",
@@ -386,7 +515,17 @@ with st.sidebar:
             "Dev-Kotak-Resume.pdf",
             "application/pdf",
             width="stretch",
+            key="sidebar_resume_download",
         )
+    st.markdown(
+        f"""
+        <div class="sidebar-dock-footer">
+          <span>{svg_icon('map_pin', 11)} Ottawa, Canada</span>
+          <span>© 2026 Dev Kotak</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # =========================================================================
@@ -399,7 +538,24 @@ if page == "Overview":
           <div class="hero-particles"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
           <p class="section-kicker">{svg_icon('rocket', 14)} Software &amp; Applied Machine Learning</p>
           <h1>I build <span class="gold-accent">intelligent software</span> from data, models &amp; modern web systems.</h1>
+          <p class="section-subtitle">
+            {svg_icon('terminal', 15)} Dev Kotak ·
+            <span class="role-rotator" aria-label="Roles">
+              <span class="role-track">
+                <span>Software Engineer</span>
+                <span>Machine Learning Engineer</span>
+                <span>Data Scientist</span>
+                <span>Applied AI Developer</span>
+                <span>Software Engineer</span>
+              </span>
+            </span>
+          </p>
           <p class="section-description">Master of Engineering graduate in Electrical &amp; Computer Engineering (Data Science Specialization) at Carleton University. Experienced across production REST APIs, computer vision, natural language processing, and interactive data workbenches.</p>
+          <div class="hero-chips">
+            <span class="hero-chip">{svg_icon('map_pin', 12)} Ottawa, Ontario, Canada</span>
+            <span class="hero-chip">{svg_icon('graduation', 12)} M.Eng · Data Science · Carleton '25</span>
+            <span class="hero-chip">{svg_icon('zap', 12)} Open to SWE / ML Roles</span>
+          </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -442,8 +598,22 @@ if page == "Overview":
             st.markdown(
                 f"""
                 <figure class="portrait hero-media">
-                  <div class="portrait-frame"><img src="{profile_uri}" alt="Portrait of Dev Kotak" /></div>
+                  <div class="orbit-wrap">
+                    <span class="orbit-ring" aria-hidden="true"></span>
+                    <div class="portrait-frame"><img src="{profile_uri}" alt="Portrait of Dev Kotak" /></div>
+                  </div>
                   <figcaption class="portrait-caption"><strong>Dev Kotak</strong><span>{svg_icon('map_pin', 12)} Ottawa, Canada</span></figcaption>
+                </figure>
+                """,
+                unsafe_allow_html=True,
+            )
+        hero_gif = as_data_uri(ROOT / "images" / "gifs" / "topic-modeling.gif")
+        if hero_gif:
+            st.markdown(
+                f"""
+                <figure class="hero-gif-mini">
+                  <img src="{hero_gif}" alt="Tone Topic live topic-modeling demo" loading="lazy" />
+                  <figcaption>{svg_icon('sparkles', 12)} Tone Topic · Live Demo <span class="live-tag">Running</span></figcaption>
                 </figure>
                 """,
                 unsafe_allow_html=True,
@@ -492,6 +662,26 @@ if page == "Overview":
         unsafe_allow_html=True,
     )
 
+    st.markdown(
+        f"""
+        <div class="now-strip">
+          <div class="now-item">
+            {icon_box('rocket', 18, sm=True)}
+            <div><h5>Currently Building</h5><p>Production NLP topic-modeling apps &amp; interactive ML dashboards deployed on Streamlit Cloud.</p></div>
+          </div>
+          <div class="now-item">
+            {icon_box('brain', 18, sm=True)}
+            <div><h5>Sharpening</h5><p>Real-time inference pipelines, MLOps fundamentals, and production LLM workflow patterns.</p></div>
+          </div>
+          <div class="now-item">
+            {icon_box('briefcase', 18, sm=True)}
+            <div><h5>Open To</h5><p>Software engineering &amp; applied ML roles — Ottawa, anywhere in Canada, and remote teams.</p></div>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     # Live animated console widget
     terminal_widget()
 
@@ -523,39 +713,58 @@ if page == "Overview":
 
     st.write("")
     st.markdown("## Selected Work")
-    st.write("A concise showcase of production applications and applied AI solutions.")
+    st.write("A concise showcase of production applications and applied AI solutions with real-time motion previews.")
+
+    tone_thumb = as_data_uri(ROOT / "images" / "gifs" / "topic-modeling.gif") or ""
+    yoga_thumb = as_data_uri(ROOT / "images" / "gifs" / "pose-estimation.gif") or ""
+    ml_thumb = as_data_uri(ROOT / "images" / "gifs" / "neural-network.gif") or ""
 
     st.markdown(
         f"""
         <div class="mini-grid">
           <div class="mini-card">
-            <div>
+            <div class="mini-media">
+              <img src="{tone_thumb}" alt="Tone Topic preview" loading="lazy" />
+              <span class="mini-live-tag"><span class="livedot"></span>NLP LIVE</span>
+            </div>
+            <div class="mini-content">
               <div class="mini-top">
                 <span class="mini-index">01</span>
-                <span class="pill-chip">{svg_icon('message', 12)} NLP</span>
+                <span class="pill-chip">{svg_icon('message', 12)} Topic Modeling</span>
               </div>
               <h3>Tone Topic</h3>
               <p>Topic modeling and document categorization for unstructured text and CSV datasets using Latent Dirichlet Allocation (LDA) and NLTK.</p>
+              <div class="tag-row">{tag_html(["Streamlit", "NLTK", "LDA", "Gensim"])}</div>
             </div>
           </div>
           <div class="mini-card">
-            <div>
+            <div class="mini-media">
+              <img src="{yoga_thumb}" alt="Digital Yoga Trainer preview" loading="lazy" />
+              <span class="mini-live-tag"><span class="livedot"></span>31 FPS VISION</span>
+            </div>
+            <div class="mini-content">
               <div class="mini-top">
                 <span class="mini-index">02</span>
-                <span class="pill-chip">{svg_icon('eye', 12)} Vision</span>
+                <span class="pill-chip">{svg_icon('eye', 12)} Vision &amp; Pose</span>
               </div>
               <h3>Digital Yoga Trainer</h3>
               <p>Real-time pose estimation and corrective posture feedback using MediaPipe landmark coordinates and OpenCV geometry calculations.</p>
+              <div class="tag-row">{tag_html(["MediaPipe", "OpenCV", "Real-Time"])}</div>
             </div>
           </div>
           <div class="mini-card">
-            <div>
+            <div class="mini-media">
+              <img src="{ml_thumb}" alt="Multi-label Prediction preview" loading="lazy" />
+              <span class="mini-live-tag"><span class="livedot"></span>75% ACCURACY</span>
+            </div>
+            <div class="mini-content">
               <div class="mini-top">
                 <span class="mini-index">03</span>
-                <span class="pill-chip">{svg_icon('cpu', 12)} ML</span>
+                <span class="pill-chip">{svg_icon('cpu', 12)} Meta-Learner</span>
               </div>
               <h3>Multi-label Prediction</h3>
-              <p>Ensemble model stacking combining Random Forests with a Logistic Regression meta-learner for complex multi-label classification (75% accuracy).</p>
+              <p>Ensemble model stacking combining Random Forests with a Logistic Regression meta-learner for complex multi-label classification.</p>
+              <div class="tag-row">{tag_html(["Scikit-Learn", "Ensembles", "Stacking"])}</div>
             </div>
           </div>
         </div>
@@ -644,6 +853,9 @@ elif page == "About":
             )
 
     st.write("")
+    render_gif_strip()
+
+    st.write("")
     about_btn1, about_btn2 = st.columns(2)
     with about_btn1:
         if st.button("View Career & Research Timeline →", key="about_exp_btn", type="primary", width="stretch"):
@@ -693,7 +905,13 @@ elif page == "Projects":
             left, right = st.columns([1.2, 1], vertical_alignment="center")
             with left:
                 tone_img = ROOT / "images" / "screen06.jpg"
-                if tone_img.exists():
+                tone_gif = ROOT / "images" / "gifs" / "topic-modeling.gif"
+                if tone_gif.exists():
+                    st.markdown(
+                        f'<figure class="featured-gif"><img src="{as_data_uri(tone_gif)}" alt="Tone Topic topic-modeling demo" /></figure>',
+                        unsafe_allow_html=True,
+                    )
+                elif tone_img.exists():
                     st.image(str(tone_img), width="stretch")
             with right:
                 st.markdown(f'<p class="project-type">{svg_icon("star", 13)} Featured Flagship Project · Natural Language Processing</p>', unsafe_allow_html=True)
@@ -991,6 +1209,8 @@ elif page == "Skills":
             tag_row(["REST Architecture", "JSON Schemas", "Authentication Flows", "Asynchronous Processing"])
 
     st.write("")
+    render_gif_strip()
+    st.write("")
     skills_btn1, skills_btn2 = st.columns(2)
     with skills_btn1:
         if st.button("Explore Applications Built with this Stack →", key="skills_proj_btn", type="primary", width="stretch"):
@@ -1014,15 +1234,18 @@ elif page == "Education":
     carleton_uri = as_data_uri(ROOT / "images" / "carleton.jpg")
     charusat_uri = as_data_uri(ROOT / "images" / "charusat.jpg")
 
-    carleton_img_html = f'<img class="edu-logo" src="{carleton_uri}" alt="Carleton University" />' if carleton_uri else ""
-    charusat_img_html = f'<img class="edu-logo" src="{charusat_uri}" alt="CHARUSAT" />' if charusat_uri else ""
+    carleton_img_html = f'<div class="edu-logo-frame"><img class="edu-logo" src="{carleton_uri}" alt="Carleton University" /></div>' if carleton_uri else ""
+    charusat_img_html = f'<div class="edu-logo-frame"><img class="edu-logo" src="{charusat_uri}" alt="CHARUSAT" /></div>' if charusat_uri else ""
 
     st.markdown(
         f"""
         <div class="edu-grid">
           <div class="edu-card">
             {carleton_img_html}
-            <span class="date-pill">{svg_icon('calendar', 12)} 2023 — 2025 · Graduate</span>
+            <div style="display: flex; gap: 0.45rem; flex-wrap: wrap; margin-bottom: 0.6rem;">
+              <span class="date-pill">{svg_icon('calendar', 12)} 2023 — 2025 · Graduate</span>
+              <span class="pill-chip">{svg_icon('award', 12)} Verified M.Eng</span>
+            </div>
             <h3>Master of Engineering</h3>
             <p>Electrical &amp; Computer Engineering · Collaborative Specialization in Data Science</p>
             <p><strong>CGPA:</strong> 10.5 / 12.0 &nbsp;·&nbsp; <strong>Location:</strong> Ottawa, Canada</p>
@@ -1030,7 +1253,10 @@ elif page == "Education":
           </div>
           <div class="edu-card">
             {charusat_img_html}
-            <span class="date-pill">{svg_icon('calendar', 12)} 2019 — 2023 · Undergraduate</span>
+            <div style="display: flex; gap: 0.45rem; flex-wrap: wrap; margin-bottom: 0.6rem;">
+              <span class="date-pill">{svg_icon('calendar', 12)} 2019 — 2023 · Undergraduate</span>
+              <span class="pill-chip">{svg_icon('star', 12)} Merit Scholar</span>
+            </div>
             <h3>Bachelor of Technology</h3>
             <p>Computer Science &amp; Engineering</p>
             <p><strong>CGPA:</strong> 9.25 / 10.0 (WES: 3.92 / 4.0) &nbsp;·&nbsp; <strong>Merit Scholarship Awardee</strong></p>
@@ -1110,10 +1336,11 @@ elif page == "Testimonials":
     )
 
     st.markdown(
-        """
+        f"""
         <div class="testimonial-grid">
           <div class="testimonial-card">
             <span class="quote-mark">{svg_icon('quote', 30)}</span>
+            <span class="star-row">{svg_icon('star', 14)}{svg_icon('star', 14)}{svg_icon('star', 14)}{svg_icon('star', 14)}{svg_icon('star', 14)}</span>
             <p class="testimonial-quote">"Dev brings a remarkable blend of machine learning theory and practical software engineering. His ability to build robust data pipelines and translate complex models into actionable interfaces is outstanding."</p>
             <div class="testimonial-author">
               <div class="testimonial-author-avatar">RE</div>
@@ -1125,6 +1352,7 @@ elif page == "Testimonials":
           </div>
           <div class="testimonial-card">
             <span class="quote-mark">{svg_icon('quote', 30)}</span>
+            <span class="star-row">{svg_icon('star', 14)}{svg_icon('star', 14)}{svg_icon('star', 14)}{svg_icon('star', 14)}{svg_icon('star', 14)}</span>
             <p class="testimonial-quote">"Dev consistently delivers clean, dependable, and high-performance backend and data integration solutions. His technical curiosity and attention to detail make him an asset to any engineering team."</p>
             <div class="testimonial-author">
               <div class="testimonial-author-avatar">TL</div>
@@ -1223,6 +1451,16 @@ elif page == "Contact":
           <p class="section-kicker">{svg_icon('mail', 14)} Direct Contact</p>
           <p class="letter-email"><a href="mailto:{EMAIL}">{EMAIL}</a></p>
           <p>{svg_icon('globe', 14)} Open to software engineering, data science, and applied machine learning roles in Ottawa, across Canada, and remotely.</p>
+          <div class="contact-chips">
+            <span class="contact-chip">{svg_icon('zap', 12)} Response &lt; 24h</span>
+            <span class="contact-chip">{svg_icon('map_pin', 12)} Ottawa, ON</span>
+            <span class="contact-chip">{svg_icon('globe', 12)} Remote Friendly</span>
+          </div>
+          <div class="contact-socials">
+            <a href="{LINKEDIN}" target="_blank" rel="noreferrer">{svg_icon('linkedin', 14)} LinkedIn</a>
+            <a href="{GITHUB}" target="_blank" rel="noreferrer">{svg_icon('github', 14)} GitHub</a>
+            <a href="mailto:{EMAIL}">{svg_icon('mail', 14)} Email</a>
+          </div>
         </div>
         """,
         unsafe_allow_html=True,
