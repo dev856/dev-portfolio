@@ -2180,3 +2180,384 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* =========================================================================
+   20. TELEMETRY SYSTEM & INTERACTIVE ML WORKBENCH
+   ========================================================================= */
+.telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin: 1.2rem 0 1.6rem;
+}
+
+.telemetry-card {
+    position: relative;
+    padding: 1.15rem 1.2rem;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(20, 16, 31, 0.72) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.24);
+    border-radius: var(--radius);
+    backdrop-filter: var(--blur-glass);
+    transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+.telemetry-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #10b981, transparent);
+    opacity: 0.8;
+}
+
+.telemetry-card.cyan {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.06) 0%, rgba(20, 16, 31, 0.72) 100%);
+    border-color: rgba(34, 211, 238, 0.24);
+}
+.telemetry-card.cyan::before {
+    background: linear-gradient(90deg, transparent, #22d3ee, transparent);
+}
+
+.telemetry-card.violet {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.07) 0%, rgba(20, 16, 31, 0.72) 100%);
+    border-color: rgba(139, 92, 246, 0.25);
+}
+.telemetry-card.violet::before {
+    background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
+}
+
+.telemetry-card.amber {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.06) 0%, rgba(20, 16, 31, 0.72) 100%);
+    border-color: rgba(251, 191, 36, 0.25);
+}
+.telemetry-card.amber::before {
+    background: linear-gradient(90deg, transparent, #fbbf24, transparent);
+}
+
+.telemetry-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.7), 0 0 24px rgba(16, 185, 129, 0.22);
+}
+.telemetry-card.cyan:hover {
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.7), 0 0 24px rgba(34, 211, 238, 0.22);
+}
+.telemetry-card.violet:hover {
+    border-color: rgba(167, 139, 250, 0.5);
+    box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.7), 0 0 24px rgba(139, 92, 246, 0.22);
+}
+
+.telemetry-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.telemetry-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.telemetry-label svg {
+    color: var(--accent-cyan);
+}
+
+.telemetry-beacon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #34d399;
+    background: rgba(16, 185, 129, 0.12);
+    padding: 2px 7px;
+    border-radius: 999px;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.telemetry-beacon.cyan {
+    color: #67e8f9;
+    background: rgba(34, 211, 238, 0.12);
+    border-color: rgba(34, 211, 238, 0.3);
+}
+.telemetry-beacon.violet {
+    color: #c4b5fd;
+    background: rgba(139, 92, 246, 0.12);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.telemetry-value {
+    font-family: var(--font-display);
+    font-size: 1.65rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #f4f5fb;
+    line-height: 1.15;
+    margin-bottom: 0.25rem;
+}
+
+.telemetry-subtext {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: var(--text-soft);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Terminal Quick Actions */
+.terminal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: -0.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.term-action-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--muted);
+    padding: 0.35rem 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.term-action-badge:hover,
+.term-action-badge.active {
+    color: var(--text);
+    background: rgba(139, 92, 246, 0.15);
+    border-color: rgba(167, 139, 250, 0.4);
+}
+
+/* Interactive ML Workbench Container */
+.workbench-card {
+    position: relative;
+    border: 1px solid rgba(139, 92, 246, 0.28);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, rgba(16, 12, 28, 0.88) 0%, rgba(8, 7, 16, 0.94) 100%);
+    backdrop-filter: var(--blur-glass);
+    box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.7), 0 0 36px rgba(139, 92, 246, 0.16);
+    padding: 1.6rem 1.8rem;
+    margin: 1.5rem 0 2rem;
+    overflow: hidden;
+}
+
+.workbench-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-bright), var(--accent-cyan), transparent);
+    opacity: 0.85;
+}
+
+.workbench-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 1rem;
+}
+
+.workbench-title-box h3 {
+    margin: 0.25rem 0 0.35rem;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.workbench-title-box h3 svg {
+    color: var(--accent-cyan);
+}
+
+.workbench-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #5eead4;
+    background: rgba(45, 212, 191, 0.1);
+    border: 1px solid rgba(45, 212, 191, 0.3);
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+/* Posture & Biomechanics Vector Display */
+.posture-viz-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(4, 3, 8, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.posture-viz-box::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.06), transparent 70%);
+}
+
+.hud-pill-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.65rem;
+    margin: 1rem 0;
+}
+
+.hud-box {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-xs);
+    padding: 0.65rem 0.8rem;
+    text-align: center;
+}
+
+.hud-lbl {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 0.2rem;
+}
+
+.hud-val {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.hud-val.ok { color: #34d399; }
+.hud-val.warn { color: #fbbf24; }
+.hud-val.crit { color: #f87171; }
+.hud-val.cyan { color: #38bdf8; }
+
+.status-alert-box {
+    padding: 0.9rem 1.1rem;
+    border-radius: var(--radius-sm);
+    margin: 0.8rem 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.status-alert-box.ok {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #d1fae5;
+}
+
+.status-alert-box.warn {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #fef3c7;
+}
+
+.status-alert-box.crit {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fee2e2;
+}
+
+.topic-meter-row {
+    margin-bottom: 0.75rem;
+}
+
+.topic-meter-header {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    margin-bottom: 0.25rem;
+    color: var(--text-soft);
+}
+
+.topic-meter-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.topic-meter-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-cyan));
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Enhanced Project Filtering */
+.project-search-wrap {
+    margin-bottom: 1.2rem;
+}
+
+.filter-pill-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+}
+
+.filter-result-meta {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin: 0.5rem 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+@media screen and (max-width: 990px) {
+    .telemetry-grid { grid-template-columns: repeat(2, 1fr); }
+    .hud-pill-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media screen and (max-width: 640px) {
+    .telemetry-grid { grid-template-columns: 1fr; }
+    .hud-pill-row { grid-template-columns: 1fr; }
+    .workbench-card { padding: 1.2rem 1rem; }
+    .workbench-header { flex-direction: column; align-items: flex-start; }
+}
+

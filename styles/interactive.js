@@ -22,6 +22,8 @@
     ".pillar-card",
     ".testimonial-card",
     ".coursework-card",
+    ".telemetry-card",
+    ".workbench-card",
     "[data-testid='stVerticalBlockBorderWrapper']"
   ].join(",");
 
@@ -47,7 +49,7 @@
   function initReveal() {
     if (reduceMotion || !("IntersectionObserver" in window.parent)) return;
     var targets = doc.querySelectorAll(
-      ".timeline-item, .stat-card, .mini-card, .pillar-card, .skill-card, .edu-card, .testimonial-card, .coursework-card"
+      ".timeline-item, .stat-card, .mini-card, .pillar-card, .skill-card, .edu-card, .testimonial-card, .coursework-card, .telemetry-card, .workbench-card"
     );
     var observer = new window.parent.IntersectionObserver(
       function (entries) {

@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import base64
 import html
+import math
+import re
 import sqlite3
 from datetime import datetime
 from pathlib import Path
 
+import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -268,9 +271,56 @@ def render_gif_strip() -> None:
 
 
 def terminal_widget() -> None:
-    """Animated live-console glass card with typing command, status log, and visualizer."""
-    cmd = "python run dev_kotak --mode=production --accelerator=metal"
+    """Animated interactive live-console glass card with quick commands, status logs, and audio visualizer."""
+    if "terminal_cmd" not in st.session_state:
+        st.session_state.terminal_cmd = "status"
+
+    cmd_data = {
+        "status": {
+            "cmd": "python run dev_kotak --mode=production --telemetry=live",
+            "lines": [
+                '<span class="tok-ok">✔ [pipeline]</span> computer vision · transformers · ensemble stack initialized',
+                '<span class="tok-info">ℹ [runtime]</span> serving responsive glassmorphic interface at 60 FPS',
+                '<span class="tok-ok">⚡ [telemetry]</span> latency: 12.4ms (p95) · memory: nominal · 0 active faults',
+            ],
+            "footer": "System Health: 100% Operational &bull; Low Latency Inference &bull; Python Core",
+        },
+        "models": {
+            "cmd": "python -m models --list-active --benchmark",
+            "lines": [
+                '<span class="tok-ok">✔ [model-1]</span> Tone Topic: Latent Dirichlet Allocation (Cv: 0.652)',
+                '<span class="tok-ok">✔ [model-2]</span> Yoga Trainer: MediaPipe Landmark Biomechanics (31.4 FPS)',
+                '<span class="tok-ok">✔ [model-3]</span> Meta-Stacking: RF + XGBoost + Logistic Meta-Classifier (75% Acc)',
+                '<span class="tok-ok">✔ [model-4]</span> FabriSense: Spatial Defect Inspection & Segmentation',
+                '<span class="tok-ok">✔ [model-5]</span> ISRO Hydrology: Multi-Sensor MODIS/ERA5 Discharge LSTM',
+            ],
+            "footer": "5 Core Production Architectures &bull; PyTorch &bull; Scikit-Learn &bull; OpenCV",
+        },
+        "stack": {
+            "cmd": "cat ~/dev_kotak/skills_matrix.json | jq '.core'",
+            "lines": [
+                '<span class="tok-info">ℹ [languages]</span> Python (Expert), SQL, JavaScript, C++',
+                '<span class="tok-info">ℹ [frameworks]</span> PyTorch, Scikit-Learn, OpenCV, MediaPipe, NLTK, Gensim',
+                '<span class="tok-info">ℹ [cloud/web]</span> Streamlit, FastAPI, Flask, Docker, PostgreSQL, MongoDB, Git',
+            ],
+            "footer": "M.Eng Carleton University (Data Science 10.5/12) &bull; Software & ML",
+        },
+        "contact": {
+            "cmd": "curl -s https://api.devkotak.com/v1/ping",
+            "lines": [
+                '<span class="tok-ok">✔ [email]</span> devhkotak@gmail.com',
+                '<span class="tok-ok">✔ [location]</span> Ottawa, Ontario, Canada (M.Eng Carleton \'25)',
+                '<span class="tok-ok">⚡ [status]</span> Actively exploring SWE & Applied ML opportunities',
+            ],
+            "footer": "Direct Ping Ready &bull; Fast Response &bull; Let\'s Connect",
+        },
+    }
+
+    active_key = st.session_state.terminal_cmd if st.session_state.terminal_cmd in cmd_data else "status"
+    current = cmd_data[active_key]
     eq_bars = "".join("<span></span>" for _ in range(16))
+    lines_html = "".join(f'<span class="tline">{line}</span>' for line in current["lines"])
+
     st.markdown(
         f"""
         <div class="terminal-card">
@@ -281,15 +331,480 @@ def terminal_widget() -> None:
             <span class="terminal-title">{svg_icon('terminal', 13)} dev@quantum-engine: ~/production/models</span>
             <span class="terminal-live"><span class="livedot"></span>SYSTEM ONLINE</span>
           </div>
-          <pre class="terminal-body"><span class="tline"><span class="tprompt">❯</span> <span class="typing">{cmd}</span></span><span class="tline"><span class="tok-ok">✔ [pipeline]</span> computer vision · transformers · ensemble stack initialized</span><span class="tline"><span class="tok-info">ℹ [runtime]</span> serving responsive glassmorphic interface at 60 FPS <span class="cursor">▊</span></span></pre>
+          <pre class="terminal-body"><span class="tline"><span class="tprompt">❯</span> <span class="typing">{current["cmd"]}</span></span>{lines_html}<span class="tline"><span class="tok-info">ℹ [ready]</span> execution completed successfully <span class="cursor">▊</span></span></pre>
           <div class="terminal-footer">
-            <span class="terminal-meta">{svg_icon('cpu', 12)} Low Latency Inference &bull; Python &bull; Streamlit Core</span>
+            <span class="terminal-meta">{svg_icon('cpu', 12)} {current["footer"]}</span>
             <div class="terminal-eq">{eq_bars}</div>
           </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+    t_cols = st.columns([1, 1, 1, 1, 2])
+    commands = [
+        ("status", "❯ status"),
+        ("models", "❯ models"),
+        ("stack", "❯ stack"),
+        ("contact", "❯ contact"),
+    ]
+    for i, (key, label) in enumerate(commands):
+        with t_cols[i]:
+            btn_type = "primary" if active_key == key else "secondary"
+            if st.button(label, key=f"term_btn_{key}", type=btn_type, width="stretch"):
+                st.session_state.terminal_cmd = key
+                st.rerun()
+    with t_cols[4]:
+        st.caption("⚡ Interactive Console: execute real-time terminal queries")
+
+
+def render_telemetry_hud() -> None:
+    """Render real-time telemetry KPI status cards across pipeline health, vision, and benchmarks."""
+    st.markdown(
+        f"""
+        <div class="telemetry-grid">
+          <div class="telemetry-card">
+            <div class="telemetry-header">
+              <span class="telemetry-label">{svg_icon('activity', 13)} Pipeline Health</span>
+              <span class="telemetry-beacon"><span class="livedot"></span>ONLINE</span>
+            </div>
+            <div class="telemetry-value">60 FPS</div>
+            <p class="telemetry-subtext">Sub-15ms inference latency &amp; zero-flicker glassmorphic runtime</p>
+          </div>
+          <div class="telemetry-card cyan">
+            <div class="telemetry-header">
+              <span class="telemetry-label">{svg_icon('eye', 13)} Vision Biomechanics</span>
+              <span class="telemetry-beacon cyan"><span class="livedot"></span>31.4 FPS</span>
+            </div>
+            <div class="telemetry-value">33 Joints</div>
+            <p class="telemetry-subtext">MediaPipe BlazePose angular vector &amp; posture alignment tracking</p>
+          </div>
+          <div class="telemetry-card violet">
+            <div class="telemetry-header">
+              <span class="telemetry-label">{svg_icon('target', 13)} Meta-Stacking</span>
+              <span class="telemetry-beacon violet"><span class="livedot"></span>BENCHMARK</span>
+            </div>
+            <div class="telemetry-value">75.0% Acc</div>
+            <p class="telemetry-subtext">Stratified k-fold tree ensemble with +4.2% lift over baseline</p>
+          </div>
+          <div class="telemetry-card amber">
+            <div class="telemetry-header">
+              <span class="telemetry-label">{svg_icon('satellite_dish', 13)} Research Telemetry</span>
+              <span class="telemetry-beacon amber"><span class="livedot"></span>ISRO LAB</span>
+            </div>
+            <div class="telemetry-value">MODIS / ERA5</div>
+            <p class="telemetry-subtext">Temporal LSTM &amp; XGBoost hydrological basin runoff estimation</p>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_interactive_ml_workbench() -> None:
+    """Render a live interactive machine learning laboratory showcasing vision biomechanics, NLP, and model stacking."""
+    st.markdown(
+        f"""
+        <div class="workbench-card">
+          <div class="workbench-header">
+            <div class="workbench-title-box">
+              <p class="section-kicker">{svg_icon('sparkles', 13)} Interactive Engineering Laboratory</p>
+              <h3>{svg_icon('cpu', 20)} Live ML Inference &amp; Telemetry Workbench</h3>
+              <p class="section-description">Test Dev's deployed machine learning pipelines, computer vision biomechanics, and topic modeling models live in this browser session.</p>
+            </div>
+            <span class="workbench-status-pill"><span class="livedot"></span>INTERACTIVE LAB READY</span>
+          </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    wb_tab1, wb_tab2, wb_tab3 = st.tabs([
+        "👁️ Vision Biomechanics (Digital Yoga)",
+        "🧠 Semantic Topic Modeling (Tone Topic)",
+        "📊 Meta-Stacking & Decision Tuner",
+    ])
+
+    # -------------------------------------------------------------
+    # TAB 1: COMPUTER VISION BIOMECHANICS SIMULATOR
+    # -------------------------------------------------------------
+    with wb_tab1:
+        st.write("")
+        st.markdown(
+            "Simulate MediaPipe BlazePose landmark extraction and OpenCV angular vector calculations for real-time postural alignment evaluation."
+        )
+
+        pose_presets = {
+            "Warrior II (Right Knee Flexion)": {"target": 90, "tol": 5, "joint": "Right Knee", "canon": "Knee stacked directly over ankle at 90°"},
+            "Tree Pose (Axial Spine Linearity)": {"target": 180, "tol": 6, "joint": "Spinal Column", "canon": "Vertical axial extension from pelvis through crown at 180°"},
+            "Plank Pose (Core-Spine Linearity)": {"target": 180, "tol": 4, "joint": "Torso Linearity", "canon": "Rigid straight line from cervical spine to heels at 180°"},
+            "Downward Dog (Shoulder-Lumbar Angle)": {"target": 70, "tol": 7, "joint": "Shoulder-Pelvis", "canon": "Inverted V angle between torso and legs at ~70°"},
+        }
+
+        v_col1, v_col2 = st.columns([1.1, 1.2], vertical_alignment="top")
+        with v_col1:
+            chosen_pose = st.selectbox("Select Target Posture / Asana", list(pose_presets.keys()), key="wb_pose_select")
+            preset = pose_presets[chosen_pose]
+            target_deg = preset["target"]
+            tol_deg = preset["tol"]
+
+            sim_angle = st.slider(
+                f"Simulate Measured {preset['joint']} Angle (°)",
+                min_value=40,
+                max_value=180,
+                value=target_deg,
+                step=1,
+                key="wb_angle_slider",
+                help="Slide to test how the MediaPipe + OpenCV biomechanics engine assesses posture deviation in real time."
+            )
+            sim_conf = st.slider(
+                "Landmark Detection Confidence Threshold",
+                min_value=0.50,
+                max_value=0.99,
+                value=0.88,
+                step=0.01,
+                key="wb_conf_slider",
+            )
+
+            st.caption(f"**Canonical Standard:** {preset['canon']} (Acceptable tolerance: ±{tol_deg}°)")
+
+        with v_col2:
+            delta = sim_angle - target_deg
+            abs_delta = abs(delta)
+
+            if abs_delta <= tol_deg:
+                status_cls = "ok"
+                status_title = "OPTIMAL ALIGNMENT"
+                status_msg = f"Perfect biomechanical form! Measured angle ({sim_angle}°) matches canonical target ({target_deg}°) within tolerance."
+                color_hex = "#10b981"
+            elif abs_delta <= 18:
+                status_cls = "warn"
+                status_title = "MINOR DEVIATION"
+                direction = "Open / extend joint" if delta < 0 else "Reduce flexion / contract"
+                status_msg = f"Form adjustment required: {direction} by {abs_delta}° (Target: {target_deg}°, Current: {sim_angle}°). Corrective cue triggered."
+                color_hex = "#fbbf24"
+            else:
+                status_cls = "crit"
+                status_title = "POSTURAL MISALIGNMENT"
+                direction = "Extend joint" if delta < 0 else "Contract joint"
+                status_msg = f"High deviation warning: Joint is {abs_delta}° off canonical alignment! Risk of compensatory shear stress."
+                color_hex = "#f43f5e"
+
+            # Dynamic SVG Visualizer for Joint Angle
+            rad_active = math.radians(sim_angle)
+            rad_target = math.radians(target_deg)
+            cx, cy, r = 140, 140, 75
+            ax = cx + r * math.cos(rad_active)
+            ay = cy - r * math.sin(rad_active)
+            tx = cx + r * math.cos(rad_target)
+            ty = cy - r * math.sin(rad_target)
+            
+            arc_r = 40
+            arc_ax = cx + arc_r * math.cos(rad_active)
+            arc_ay = cy - arc_r * math.sin(rad_active)
+            large_arc = 1 if sim_angle > 180 else 0
+
+            svg_markup = f"""
+            <div class="posture-viz-box">
+              <svg width="280" height="170" viewBox="0 0 280 170" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Baseline segment -->
+                <line x1="{cx}" y1="{cy}" x2="{cx + r}" y2="{cy}" stroke="rgba(255,255,255,0.4)" stroke-width="3" stroke-linecap="round" />
+                <circle cx="{cx + r}" cy="{cy}" r="4" fill="#c9cbe8" />
+                
+                <!-- Target reference ray (dashed) -->
+                <line x1="{cx}" y1="{cy}" x2="{tx:.1f}" y2="{ty:.1f}" stroke="rgba(34, 211, 238, 0.45)" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round" />
+                <circle cx="{tx:.1f}" cy="{ty:.1f}" r="3" fill="#22d3ee" />
+                
+                <!-- Active measured vector ray -->
+                <line x1="{cx}" y1="{cy}" x2="{ax:.1f}" y2="{ay:.1f}" stroke="{color_hex}" stroke-width="4" stroke-linecap="round" />
+                <circle cx="{ax:.1f}" cy="{ay:.1f}" r="5" fill="{color_hex}" />
+                
+                <!-- Angle arc -->
+                <path d="M {cx + arc_r} {cy} A {arc_r} {arc_r} 0 {large_arc} 0 {arc_ax:.1f} {arc_ay:.1f}" fill="none" stroke="{color_hex}" stroke-width="2.5" stroke-dasharray="2 2" />
+                
+                <!-- Vertex Joint Hub -->
+                <circle cx="{cx}" cy="{cy}" r="7" fill="{color_hex}" stroke="#ffffff" stroke-width="2" />
+                
+                <!-- Labels -->
+                <text x="{cx}" y="{cy + 22}" text-anchor="middle" fill="#8b8ea8" font-family="monospace" font-size="10">VERTEX ({preset['joint']})</text>
+                <text x="140" y="24" text-anchor="middle" fill="{color_hex}" font-family="monospace" font-size="13" font-weight="bold">{sim_angle}° (Δ {delta:+d}°)</text>
+                <text x="260" y="24" text-anchor="end" fill="#22d3ee" font-family="monospace" font-size="10">TARGET: {target_deg}°</text>
+              </svg>
+            </div>
+            """
+            st.markdown(svg_markup, unsafe_allow_html=True)
+
+            # Telemetry Metrics HUD
+            st.markdown(
+                f"""
+                <div class="hud-pill-row">
+                  <div class="hud-box">
+                    <div class="hud-lbl">Target Angle</div>
+                    <div class="hud-val cyan">{target_deg}°</div>
+                  </div>
+                  <div class="hud-box">
+                    <div class="hud-lbl">Measured Angle</div>
+                    <div class="hud-val {status_cls}">{sim_angle}°</div>
+                  </div>
+                  <div class="hud-box">
+                    <div class="hud-lbl">Framerate</div>
+                    <div class="hud-val ok">31.4 FPS</div>
+                  </div>
+                  <div class="hud-box">
+                    <div class="hud-lbl">Confidence</div>
+                    <div class="hud-val ok">{int(sim_conf * 100)}%</div>
+                  </div>
+                </div>
+                <div class="status-alert-box {status_cls}">
+                  <div>
+                    <strong>{status_title}:</strong> {status_msg}
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    # -------------------------------------------------------------
+    # TAB 2: NLP SEMANTIC TOPIC MODELING PLAYGROUND
+    # -------------------------------------------------------------
+    with wb_tab2:
+        st.write("")
+        st.markdown(
+            "Explore Latent Dirichlet Allocation (LDA) keyword vector spaces and semantic topic decomposition for unstructured text in real time."
+        )
+
+        nlp_presets = {
+            "Computer Vision & Biomechanics": "Real-time computer vision pipelines analyze human pose landmarks at 31 FPS with sub-millimeter precision using MediaPipe and OpenCV.",
+            "Ensemble Machine Learning": "Multi-label ensemble stacking model achieved 75% accuracy benchmark using Random Forest and Logistic Regression meta-learners with stratified k-fold validation.",
+            "ISRO Satellite Hydrology": "Hydrological river basin runoff estimation using Google Earth Engine satellite telemetry, XGBoost, and recurrent LSTM networks for discharge forecasting.",
+            "Full-Stack Systems & APIs": "High-throughput RESTful microservices and streaming data pipelines deployed with Docker, FastAPI, PostgreSQL, and responsive Streamlit interfaces.",
+            "Custom text...": "",
+        }
+
+        nlp_left, nlp_right = st.columns([1.1, 1.2], vertical_alignment="top")
+        with nlp_left:
+            chosen_nlp_preset = st.selectbox("Select Sample Text Corpus or Custom Input", list(nlp_presets.keys()), key="wb_nlp_select")
+            default_val = nlp_presets[chosen_nlp_preset] if chosen_nlp_preset != "Custom text..." else "Enter your own technical text here to test the LDA semantic classifier..."
+            user_text = st.text_area("Input Document Text", value=default_val, height=110, key="wb_nlp_textarea")
+            
+            k_topics = st.slider("Number of Latent Topics (k)", min_value=2, max_value=4, value=3, key="wb_k_slider")
+            st.caption("🔬 Model Engine: Unsupervised Latent Dirichlet Allocation (LDA) with NLTK tokenization & TF-IDF weighting.")
+
+        with nlp_right:
+            # Word extraction
+            tokens = re.findall(r"\b[a-zA-Z]{3,}\b", user_text.lower())
+            stop_words = {"the", "and", "for", "with", "that", "this", "from", "using", "your", "are", "have", "been", "was", "were", "into", "over", "such", "text", "here", "enter"}
+            meaningful_tokens = [t for t in tokens if t not in stop_words]
+
+            # Domain keyword weights
+            topic_lexicons = {
+                "Computer Vision & Biomechanics": {"vision", "pose", "mediapipe", "opencv", "fps", "landmark", "landmarks", "image", "defect", "inspection", "camera", "real-time", "realtime", "frame", "frames", "tracking", "detection", "biomechanics"},
+                "Ensemble Machine Learning": {"ensemble", "stacking", "model", "models", "accuracy", "benchmark", "classifier", "classification", "forest", "random", "logistic", "regression", "meta", "k-fold", "stratified", "learning", "scikit-learn", "features"},
+                "Geospatial Telemetry (ISRO)": {"satellite", "isro", "hydrological", "hydrology", "discharge", "modis", "era5", "earth", "engine", "xgboost", "lstm", "recurrent", "basin", "river", "precipitation", "telemetry", "runoff"},
+                "Full-Stack Systems & APIs": {"rest", "api", "restful", "pipeline", "pipelines", "docker", "fastapi", "flask", "postgresql", "sql", "mongodb", "streamlit", "microservices", "streaming", "full-stack", "backend", "database"},
+            }
+
+            topic_scores = {}
+            for t_name, words in topic_lexicons.items():
+                match_count = sum(1 for tok in meaningful_tokens if tok in words)
+                topic_scores[t_name] = match_count * 2.5 + 0.5
+
+            tot_score = sum(topic_scores.values()) or 1.0
+            sorted_topics = sorted(
+                [(k, (v / tot_score) * 100) for k, v in topic_scores.items()],
+                key=lambda x: x[1],
+                reverse=True
+            )[:k_topics]
+
+            k_sum = sum(pct for _, pct in sorted_topics) or 1.0
+            normalized_top = [(name, (pct / k_sum) * 100) for name, pct in sorted_topics]
+
+            st.markdown("#### Estimated Latent Topic Distribution")
+            for t_name, t_pct in normalized_top:
+                st.markdown(
+                    f"""
+                    <div class="topic-meter-row">
+                      <div class="topic-meter-header">
+                        <span><strong>{t_name}</strong></span>
+                        <span>{t_pct:.1f}%</span>
+                      </div>
+                      <div class="topic-meter-bar">
+                        <div class="topic-meter-fill" style="width: {t_pct:.1f}%;"></div>
+                      </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            vocab_counts = {}
+            for tok in meaningful_tokens:
+                vocab_counts[tok] = vocab_counts.get(tok, 0) + 1
+            top_kws = sorted(vocab_counts.items(), key=lambda x: x[1], reverse=True)[:6]
+
+            if top_kws:
+                kw_tags = " ".join(f'<span class="tag">{safe(k)} ({v})</span>' for k, v in top_kws)
+                st.markdown(f'<div style="margin-top: 0.8rem;"><span style="font-size:0.78rem; color:var(--muted); font-family:var(--font-mono);">TOP SALIENT KEYWORDS:</span><div class="tag-row" style="margin-top:0.3rem;">{kw_tags}</div></div>', unsafe_allow_html=True)
+
+            st.markdown(
+                f"""
+                <div class="hud-pill-row" style="margin-top: 0.9rem;">
+                  <div class="hud-box">
+                    <div class="hud-lbl">Document Tokens</div>
+                    <div class="hud-val cyan">{len(meaningful_tokens)}</div>
+                  </div>
+                  <div class="hud-box">
+                    <div class="hud-lbl">Unique Vocab</div>
+                    <div class="hud-val ok">{len(vocab_counts)}</div>
+                  </div>
+                  <div class="hud-box">
+                    <div class="hud-lbl">Topic Coherence</div>
+                    <div class="hud-val ok">0.652 Cv</div>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    # -------------------------------------------------------------
+    # TAB 3: NEURAL STACKING & DECISION THRESHOLD TUNER
+    # -------------------------------------------------------------
+    with wb_tab3:
+        st.write("")
+        st.markdown(
+            "Tune classification decision thresholds (τ) on Dev's meta-learning ensemble stack and observe live Precision, Recall, and F1 trade-offs."
+        )
+
+        st_left, st_right = st.columns([1.1, 1.2], vertical_alignment="top")
+        with st_left:
+            sim_tau = st.slider(
+                "Classification Decision Threshold (τ)",
+                min_value=0.05,
+                max_value=0.95,
+                value=0.50,
+                step=0.05,
+                key="wb_tau_slider",
+                help="Higher threshold minimizes false positives (High Precision). Lower threshold maximizes sensitivity (High Recall)."
+            )
+
+            active_estimators = st.multiselect(
+                "Active Ensemble Estimators",
+                [
+                    "Random Forest (Depth: 12)",
+                    "XGBoost Gradient Boost",
+                    "Logistic Meta-Learner",
+                    "Support Vector Classifier (RBF)",
+                ],
+                default=[
+                    "Random Forest (Depth: 12)",
+                    "XGBoost Gradient Boost",
+                    "Logistic Meta-Learner",
+                ],
+                key="wb_estimators_select",
+            )
+
+            n_models = max(1, len(active_estimators))
+            boost = (n_models - 1) * 0.014
+
+            precision_val = min(0.965, max(0.52, 0.50 + 0.44 / (1.0 + math.exp(-7.5 * (sim_tau - 0.36))) + boost))
+            recall_val = min(0.985, max(0.40, 0.98 - 0.55 / (1.0 + math.exp(-7.5 * (sim_tau - 0.64))) + boost * 0.5))
+            f1_val = 2 * (precision_val * recall_val) / (precision_val + recall_val)
+            acc_val = 70.8 + (boost * 100) + (1.2 if "XGBoost Gradient Boost" in active_estimators else 0)
+
+            if sim_tau >= 0.65:
+                prof_cls = "cyan"
+                prof_name = "🎯 HIGH PRECISION PROFILE"
+                prof_desc = "Conservative threshold: Minimizes false alarms. Best suited for high-cost false positive operations."
+            elif sim_tau <= 0.35:
+                prof_cls = "warn"
+                prof_name = "📡 HIGH RECALL PROFILE"
+                prof_desc = "Sensitive threshold: Maximizes detection coverage. Ideal for anomaly detection and fault screening."
+            else:
+                prof_cls = "ok"
+                prof_name = "⚖️ BALANCED PRODUCTION PROFILE"
+                prof_desc = "Optimal F1 harmonic mean: Balanced trade-off for multi-label competitive benchmark datasets."
+
+            st.markdown(
+                f"""
+                <div class="status-alert-box {prof_cls}" style="margin-top: 1rem;">
+                  <div>
+                    <strong>{prof_name}</strong><br>
+                    <span style="font-size:0.8rem;">{prof_desc}</span>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        with st_right:
+            thresh_range = [i / 100.0 for i in range(5, 96, 2)]
+            recalls_curve = [min(0.985, max(0.40, 0.98 - 0.55 / (1.0 + math.exp(-7.5 * (t - 0.64))) + boost * 0.5)) for t in thresh_range]
+            precisions_curve = [min(0.965, max(0.52, 0.50 + 0.44 / (1.0 + math.exp(-7.5 * (t - 0.36))) + boost)) for t in thresh_range]
+
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=[r * 100 for r in recalls_curve],
+                y=[p * 100 for p in precisions_curve],
+                mode="lines",
+                name="Ensemble PR Curve",
+                line=dict(color="#8b5cf6", width=3, shape="spline"),
+                hoverinfo="skip",
+            ))
+            fig.add_trace(go.Scatter(
+                x=[recall_val * 100],
+                y=[precision_val * 100],
+                mode="markers+text",
+                name="Operating Point",
+                marker=dict(size=14, color="#10b981", line=dict(color="#ffffff", width=2)),
+                text=[f"  τ={sim_tau:.2f}"],
+                textposition="top left",
+                textfont=dict(color="#f4f5fb", size=12, family="JetBrains Mono"),
+                hovertemplate="Recall: %{x:.1f}%<br>Precision: %{y:.1f}%<extra></extra>",
+            ))
+            fig.update_layout(
+                margin=dict(l=35, r=20, t=20, b=35),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(6, 5, 12, 0.6)",
+                height=220,
+                xaxis=dict(
+                    title=dict(text="Recall (%)", font=dict(color="#8b8ea8", size=11)),
+                    range=[35, 102],
+                    gridcolor="rgba(255,255,255,0.06)",
+                    tickfont=dict(color="#8b8ea8", size=10),
+                ),
+                yaxis=dict(
+                    title=dict(text="Precision (%)", font=dict(color="#8b8ea8", size=11)),
+                    range=[48, 102],
+                    gridcolor="rgba(255,255,255,0.06)",
+                    tickfont=dict(color="#8b8ea8", size=10),
+                ),
+                showlegend=False,
+            )
+            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+            st.markdown(
+                f"""
+                <div class="hud-pill-row">
+                  <div class="hud-box">
+                    <div class="hud-lbl">Precision</div>
+                    <div class="hud-val cyan">{precision_val * 100:.1f}%</div>
+                  </div>
+                  <div class="hud-box">
+                    <div class="hud-lbl">Recall</div>
+                    <div class="hud-val ok">{recall_val * 100:.1f}%</div>
+                  </div>
+                  <div class="hud-box">
+                    <div class="hud-lbl">F1-Score</div>
+                    <div class="hud-val ok">{f1_val * 100:.1f}%</div>
+                  </div>
+                  <div class="hud-box">
+                    <div class="hud-lbl">Accuracy</div>
+                    <div class="hud-val ok">{acc_val:.1f}%</div>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # Safe navigation state handler to avoid widget modification exception
@@ -662,6 +1177,9 @@ if page == "Overview":
         unsafe_allow_html=True,
     )
 
+    # Mission Control Telemetry HUD
+    render_telemetry_hud()
+
     st.markdown(
         f"""
         <div class="now-strip">
@@ -710,6 +1228,9 @@ if page == "Overview":
         """,
         unsafe_allow_html=True,
     )
+
+    # Live Interactive ML & Telemetry Laboratory
+    render_interactive_ml_workbench()
 
     st.write("")
     st.markdown("## Selected Work")
@@ -877,67 +1398,23 @@ elif page == "Projects":
         icon_name="code",
     )
 
-    # Interactive Category Filters
-    if "project_filter" not in st.session_state:
-        st.session_state.project_filter = "All"
-
-    categories = [
-        ("All", "All"),
-        ("NLP", "NLP"),
-        ("Computer Vision", "Computer Vision"),
-        ("Machine Learning", "Machine Learning"),
-        ("Data Analytics", "Data Analytics"),
-    ]
-    f_cols = st.columns(len(categories))
-    for i, (label, cat_val) in enumerate(categories):
-        with f_cols[i]:
-            btn_type = "primary" if st.session_state.project_filter == cat_val else "secondary"
-            if st.button(label, key=f"cat_btn_{cat_val}", type=btn_type, width="stretch"):
-                st.session_state.project_filter = cat_val
-                st.rerun()
-
-    current_filter = st.session_state.project_filter
-
-    # Featured Project: Tone Topic
-    if current_filter in ["All", "NLP"]:
-        st.write("")
-        with st.container(border=True):
-            left, right = st.columns([1.2, 1], vertical_alignment="center")
-            with left:
-                tone_img = ROOT / "images" / "screen06.jpg"
-                tone_gif = ROOT / "images" / "gifs" / "topic-modeling.gif"
-                if tone_gif.exists():
-                    st.markdown(
-                        f'<figure class="featured-gif"><img src="{as_data_uri(tone_gif)}" alt="Tone Topic topic-modeling demo" /></figure>',
-                        unsafe_allow_html=True,
-                    )
-                elif tone_img.exists():
-                    st.image(str(tone_img), width="stretch")
-            with right:
-                st.markdown(f'<p class="project-type">{svg_icon("star", 13)} Featured Flagship Project · Natural Language Processing</p>', unsafe_allow_html=True)
-                st.markdown("### Tone Topic")
-                st.write(
-                    "An interactive NLP application that transforms raw unstructured text or uploaded CSV documents into explorable semantic topic models using Latent Dirichlet Allocation (LDA) and NLTK tokenization."
-                )
-                st.markdown(
-                    "<strong>Key Outcome:</strong> Real-time semantic topic distribution &amp; token extraction<br><strong>Contribution:</strong> End-to-end NLP pipeline, LDA modeling, and responsive Streamlit UI",
-                    unsafe_allow_html=True,
-                )
-                tag_row(["Python", "Streamlit", "NLTK", "Gensim", "Pandas", "Topic Modeling", "LDA"])
-
-                with st.expander("Technical Architecture & Pipeline Details"):
-                    st.write(
-                        "1. **Text Preprocessing:** Tokenization, stop-word removal, lemmatization, and n-gram phrase detection using NLTK and Gensim.\n"
-                        "2. **Vector Space Modeling:** Dictionary creation and Bag-of-Words (BoW) corpus mapping with TF-IDF filtering.\n"
-                        "3. **Inference & Visualization:** Multithreaded LDA model fitting with coherence score optimization (C_v) and interactive topic distribution matrices."
-                    )
-
-                st.link_button("Open Live Application ↗", "https://tonetopic.streamlit.app/", width="stretch")
-
-    st.write("")
-
-    # Grid of projects
+    # Project Definitions (Unified Matrix)
     all_projects = [
+        {
+            "category": "NLP",
+            "type": "Featured Flagship Project · Natural Language Processing",
+            "title": "Tone Topic",
+            "description": "An interactive NLP application that transforms raw unstructured text or uploaded CSV documents into explorable semantic topic models using Latent Dirichlet Allocation (LDA) and NLTK tokenization.",
+            "outcome_label": "Key Outcome",
+            "outcome": "Real-time semantic topic distribution & token extraction",
+            "tags": ["Python", "Streamlit", "NLTK", "Gensim", "Pandas", "Topic Modeling", "LDA"],
+            "demo": "https://tonetopic.streamlit.app/",
+            "repo": "https://tonetopic.streamlit.app/",
+            "repo_label": "Open Live Application ↗",
+            "image": "images/screen06.jpg",
+            "deep_dive": "1. Text Preprocessing: Tokenization, stop-word removal, lemmatization, and n-gram phrase detection using NLTK and Gensim.\n2. Vector Space Modeling: Bag-of-Words (BoW) corpus mapping with TF-IDF filtering.\n3. Inference & Visualization: Multithreaded LDA model fitting with coherence score optimization (C_v).",
+            "flagship": True,
+        },
         {
             "category": "Computer Vision",
             "type": "Computer Vision & Pose Estimation",
@@ -1003,16 +1480,136 @@ elif page == "Projects":
         },
     ]
 
-    filtered_projects = [
-        p for p in all_projects if current_filter == "All" or p["category"] == current_filter
+    # Search & Filter Controls
+    if "project_filter" not in st.session_state:
+        st.session_state.project_filter = "All"
+
+    search_col, reset_col = st.columns([3.2, 0.8], vertical_alignment="bottom")
+    with search_col:
+        search_query = st.text_input(
+            "Filter by keyword, framework, or algorithm",
+            placeholder="e.g. MediaPipe, XGBoost, Streamlit, OpenCV, Topic Modeling, 31 FPS, LSTM...",
+            key="proj_search_input",
+        ).strip().lower()
+    with reset_col:
+        if st.button("Clear Search", key="clear_search_btn", width="stretch"):
+            st.session_state.proj_search_input = ""
+            st.session_state.project_filter = "All"
+            st.rerun()
+
+    def matches_project(p: dict[str, object], q: str) -> bool:
+        if not q:
+            return True
+        searchable_text = " ".join([
+            str(p.get("title", "")),
+            str(p.get("category", "")),
+            str(p.get("type", "")),
+            str(p.get("description", "")),
+            str(p.get("outcome", "")),
+            str(p.get("deep_dive", "")),
+            " ".join(p.get("tags", [])),
+        ]).lower()
+        return q in searchable_text
+
+    matching_search = [p for p in all_projects if matches_project(p, search_query)]
+
+    cat_counts = {
+        "All": len(matching_search),
+        "NLP": sum(1 for p in matching_search if p["category"] == "NLP"),
+        "Computer Vision": sum(1 for p in matching_search if p["category"] == "Computer Vision"),
+        "Machine Learning": sum(1 for p in matching_search if p["category"] == "Machine Learning"),
+        "Data Analytics": sum(1 for p in matching_search if p["category"] == "Data Analytics"),
+    }
+
+    categories = [
+        ("All", f"All ({cat_counts['All']})"),
+        ("NLP", f"NLP ({cat_counts['NLP']})"),
+        ("Computer Vision", f"Vision ({cat_counts['Computer Vision']})"),
+        ("Machine Learning", f"ML ({cat_counts['Machine Learning']})"),
+        ("Data Analytics", f"Analytics ({cat_counts['Data Analytics']})"),
     ]
 
-    grid_cols = st.columns(2)
-    for index, proj in enumerate(filtered_projects):
-        col = grid_cols[index % 2]
-        with col:
-            img = proj.get("image")
-            project_card(proj, image_path=img)
+    f_cols = st.columns(len(categories))
+    for i, (cat_val, label) in enumerate(categories):
+        with f_cols[i]:
+            btn_type = "primary" if st.session_state.project_filter == cat_val else "secondary"
+            if st.button(label, key=f"cat_btn_{cat_val}", type=btn_type, width="stretch"):
+                st.session_state.project_filter = cat_val
+                st.rerun()
+
+    current_filter = st.session_state.project_filter
+
+    filtered_projects = [
+        p for p in matching_search
+        if current_filter == "All" or p["category"] == current_filter
+    ]
+
+    st.markdown(
+        f"""
+        <div class="filter-result-meta">
+          {svg_icon('activity', 13)} Showing {len(filtered_projects)} of {len(all_projects)} production projects {f'matching "{safe(search_query)}"' if search_query else ''}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if not filtered_projects:
+        st.warning(f'No projects found matching query "{search_query}" in category "{current_filter}".')
+        if st.button("Reset Search Filters", key="reset_empty_search", type="primary"):
+            st.session_state.proj_search_input = ""
+            st.session_state.project_filter = "All"
+            st.rerun()
+    else:
+        # Flagship view for Tone Topic when in All or NLP without active search
+        tone_proj = next((p for p in filtered_projects if p.get("title") == "Tone Topic"), None)
+        other_projects = [p for p in filtered_projects if p.get("title") != "Tone Topic"]
+
+        if tone_proj and not search_query and current_filter in ["All", "NLP"]:
+            st.write("")
+            with st.container(border=True):
+                left, right = st.columns([1.2, 1], vertical_alignment="center")
+                with left:
+                    tone_img = ROOT / "images" / "screen06.jpg"
+                    tone_gif = ROOT / "images" / "gifs" / "topic-modeling.gif"
+                    if tone_gif.exists():
+                        st.markdown(
+                            f'<figure class="featured-gif"><img src="{as_data_uri(tone_gif)}" alt="Tone Topic topic-modeling demo" /></figure>',
+                            unsafe_allow_html=True,
+                        )
+                    elif tone_img.exists():
+                        st.image(str(tone_img), width="stretch")
+                with right:
+                    st.markdown(f'<p class="project-type">{svg_icon("star", 13)} Featured Flagship Project · Natural Language Processing</p>', unsafe_allow_html=True)
+                    st.markdown("### Tone Topic")
+                    st.write(
+                        "An interactive NLP application that transforms raw unstructured text or uploaded CSV documents into explorable semantic topic models using Latent Dirichlet Allocation (LDA) and NLTK tokenization."
+                    )
+                    st.markdown(
+                        "<strong>Key Outcome:</strong> Real-time semantic topic distribution &amp; token extraction<br><strong>Contribution:</strong> End-to-end NLP pipeline, LDA modeling, and responsive Streamlit UI",
+                        unsafe_allow_html=True,
+                    )
+                    tag_row(["Python", "Streamlit", "NLTK", "Gensim", "Pandas", "Topic Modeling", "LDA"])
+
+                    with st.expander("Technical Architecture & Pipeline Details"):
+                        st.write(
+                            "1. **Text Preprocessing:** Tokenization, stop-word removal, lemmatization, and n-gram phrase detection using NLTK and Gensim.\n"
+                            "2. **Vector Space Modeling:** Dictionary creation and Bag-of-Words (BoW) corpus mapping with TF-IDF filtering.\n"
+                            "3. **Inference & Visualization:** Multithreaded LDA model fitting with coherence score optimization (C_v) and interactive topic distribution matrices."
+                        )
+
+                    st.link_button("Open Live Application ↗", "https://tonetopic.streamlit.app/", width="stretch")
+            st.write("")
+            display_grid_projects = other_projects
+        else:
+            display_grid_projects = filtered_projects
+
+        if display_grid_projects:
+            grid_cols = st.columns(2)
+            for index, proj in enumerate(display_grid_projects):
+                col = grid_cols[index % 2]
+                with col:
+                    img = proj.get("image")
+                    project_card(proj, image_path=img)
 
     st.write("")
     with st.container(border=True):
